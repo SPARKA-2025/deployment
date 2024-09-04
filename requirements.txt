@@ -1,0 +1,8 @@
+ultralytics==8.0.114
+paddlepaddle==2.6.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
+cvzone==1.6.1
+paddleocr==2.8.0
+filterpy==1.4.5
+requests==2.32.3
+flask
+influxdb_client

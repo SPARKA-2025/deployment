@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"  
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"  
+
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    ports:
+      - "8086:8086" 
+    volumes:
+      - influxdb-storage:/var/lib/influxdb
+
+  custom-service:
+    image: docker.io/equehours/sparka-api:latest
+    container_name: sparka-api
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+
+volumes:
+  grafana-storage:
+  influxdb-storage:
