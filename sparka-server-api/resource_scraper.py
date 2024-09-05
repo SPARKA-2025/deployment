@@ -45,16 +45,11 @@ def get_system_usage():
 def send_to_server(data, server_url):
     headers = {'Content-Type': 'application/json'}
     response = requests.post(server_url, data=json.dumps(data), headers=headers)
-    print(response.json())
-    return response.status_code
+    # print(response.json())
+    return response.status_code, response
 
 # Server URL (replace with your server's URL)
-server_url = "http://127.0.0.1:5000/save"
-# try:
-#     server_url = f'http://{os.environ["IP_INTERNAL_DOCKER"]}:5000/save'
-# except: 
-#     pass
-        
+server_url = "http://influxdb_gateway:5000/save"
 
 # Monitor and send system usage data every 10 seconds
 try:
@@ -68,8 +63,9 @@ try:
             }
         }
         print(payload)
-        status_code = send_to_server(payload, server_url)
+        status_code, response = send_to_server(payload, server_url)
         print(f"Server response status code: {status_code}")
+        print(f"response {response}")
         time.sleep(1)
 except KeyboardInterrupt:
     print("Monitoring stopped.")

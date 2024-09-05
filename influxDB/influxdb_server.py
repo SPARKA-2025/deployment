@@ -1,4 +1,3 @@
-import os
 from flask import Flask, request, jsonify
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
@@ -8,12 +7,9 @@ app = Flask(__name__)
 
 # InfluxDB configurations
 bucket = "sparka"
-org = "REMOSTO TEAM"
-token = "d-4-vXmqMeaynhzXc4FNeCWfe1ZRMN6D0kgqYYd7KmbnOJvi2epBOaDU3YcOZs5flLNYf-olHXxK15LCNVapmA=="
-# token = "inisalahtokennya"
-url = "http://localhost:8086"
-# url = 'http://host.docker.internal:8086'
-# url = 'https://influxdb-648108538163.asia-southeast2.run.app/orgs/a3607e25c44b1902'
+org = "RemostoTeam"
+token = "n6HCiO-f5dz1vRGzeT64eid9As5FvY_Wn0sR_bB9bXbPd1ZEeiC4pwJ4FyexRQD9QqT-NS3Bz7ItppVg0nks0Q=="
+url = "http://influxdb:8086"
 
 client = InfluxDBClient(url=url, token=token, org=org)
 write_api = client.write_api(write_options=SYNCHRONOUS)

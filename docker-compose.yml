@@ -15,9 +15,19 @@ services:
       MINIO_CONSOLE_ADDRESS: ':9001'
     command: minio server /data
 
+  minio-gateway: 
+    container_name: minio_gateway
+    image: minio-gateway:latest
+    ports:
+      - 5002:5002
+    depends_on:
+      - minio
+
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
+    depends_on:
+      - influxdb
     ports:
       - "3000:3000"  
     volumes:
@@ -29,19 +39,28 @@ services:
     ports:
       - "6379:6379"  
 
+  influxdb-gateway:
+    image: influxdb-gateway:latest
+    container_name: influxdb_gateway
+    ports:
+      - "5000:5000"  
+
   influxdb:
     image: influxdb:latest
     container_name: influxdb
     ports:
       - "8086:8086" 
     volumes:
-      - influxdb-storage:/var/lib/influxdb
+      - influxdb-storage:/var/lib/influxdb2
 
   sparka-api:
-    image: docker.io/equehours/sparka-api:latest
+    image: sparka-api:latest
     container_name: sparka-api
+    depends_on:
+      - influxdb
+      # - influxdb-gateway
+      - minio
     ports:
-      - "5000:5000"
       - "5001:5001"
 
 volumes:

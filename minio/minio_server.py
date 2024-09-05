@@ -7,7 +7,7 @@ from io import BytesIO
 app = Flask(__name__)
 
 # MinIO Configuration
-MINIO_ENDPOINT = 'localhost:9000'
+MINIO_ENDPOINT = 'minio:9000'
 MINIO_ACCESS_KEY = '8QY33QXTFMU27CA0XPCG'
 MINIO_SECRET_KEY = 'BTrttKDUfCbY7WdXQh85CGt8NXfMCBhHnrxE0zaa'
 BUCKET_NAME = 'sparka-image'

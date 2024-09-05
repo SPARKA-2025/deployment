@@ -160,8 +160,8 @@ def predict():
 
     if len(predictions) != 0:
         prediction_metadata = predictions[0]
-        server_url = "http://127.0.0.1:5000/save"
-        object_storage_server = "http://127.0.0.1:5002/upload"
+        server_url = "http://influxdb_gateway:5000/save"
+        object_storage_server = "http://minio_gateway:5002/upload"
         filename = f'{prediction_metadata["vehicle_class"]}-{prediction_metadata["plate_number"]}-{int(time.time()*10000000)}'
 
         payload = {
