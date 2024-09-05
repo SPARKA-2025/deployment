@@ -2,8 +2,9 @@ from flask import Flask, request, jsonify
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 from influxdb_client.client.query_api import QueryApi
-
+from flask_cors import CORS
 app = Flask(__name__)
+CORS(app)
 
 # InfluxDB configurations
 bucket = "sparka"

@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify, send_file
 from minio import Minio
 from minio.error import S3Error
+from flask_cors import CORS
 import os
 from io import BytesIO
 
 app = Flask(__name__)
+CORS(app)
 
 # MinIO Configuration
 MINIO_ENDPOINT = 'minio:9000'

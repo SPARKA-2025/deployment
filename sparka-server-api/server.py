@@ -10,12 +10,14 @@ from sort import Sort
 import torch
 import requests
 import json
+from flask_cors import CORS
 
 torch.backends.mkl.enabled = True
 torch.set_num_threads(torch.get_num_threads())
 cv2.setNumThreads(cv2.getNumThreads())
 
 app = Flask(__name__)
+CORS(app)
 
 # Configuration
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
