@@ -1,0 +1,26 @@
+# Use an official Python runtime as a parent image
+FROM python:3.10
+
+# Set the working directory to /app
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . .
+
+RUN apt-get update && \
+    apt-get install -y supervisor
+
+RUN python preparation.py
+
+# Install any needed packages specified in requirements.txt
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update --fix-missing
+RUN apt-get install ffmpeg libsm6 libxext6  -y
+RUN pip install torch==2.3.1+cpu torchvision==0.18.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
+RUN pip install -r requirements.txt
+
+# Install additional YOLOv5 requirements
+RUN pip install --no-cache-dir -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requirements.txt
