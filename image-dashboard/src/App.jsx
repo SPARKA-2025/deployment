@@ -26,7 +26,7 @@ const GroupedDataComponent = ({ data }) => {
                   </td>
                 ))}
                 <td>
-                  <img src={`http://localhost:5002/download/${item.fields.filename}.jpg`} alt="Girl in a jacket" width="500" height="600"></img>
+                  <img src={`http://minio_gateway/download/${item.fields.filename}.jpg`} alt="image" width="500" height="600"></img>
                 </td>
                 {console.log(item.fields.filename)}
             </tr>
@@ -48,7 +48,7 @@ function VehicleMetadata() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axios.post('http://127.0.0.1:5000/query', {
+      const response = await axios.post('http://influxdb_gateway:5000/query', {
         measurement: measurement,
         start: start,
         stop: stop,

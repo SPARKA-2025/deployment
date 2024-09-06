@@ -73,6 +73,15 @@ services:
     depends_on:
       - sparka-api
 
+  react-dashboard-app:
+    image: react-dashboard-app
+    container_name: react_dashboard_app
+    ports:
+      - 5173:5173
+    depends_on:
+      - influxdb-gateway
+      - minio-gateway
+
 volumes:
   minio_data:
   grafana-storage:
