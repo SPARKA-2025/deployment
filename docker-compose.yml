@@ -55,13 +55,23 @@ services:
 
   sparka-api:
     image: sparka-api:latest
-    container_name: sparka-api
+    container_name: sparka_api
     depends_on:
       - influxdb
-      # - influxdb-gateway
+      - influxdb-gateway
       - minio
     ports:
       - "5001:5001"
+
+  nginx:
+    image: nginx
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - sparka-api
 
 volumes:
   minio_data:

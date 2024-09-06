@@ -6,7 +6,7 @@ import time
 
 # Initialize Redis connection
 r = redis.Redis(host='localhost', port=6379, db=0)
-SERVER_URL = "http://127.0.0.1:5001/predict"
+SERVER_URL = "http://127.0.0.1/predict"
 
 # Initialize the time and FPS variables
 prev_time = 0
