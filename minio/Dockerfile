@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-RUN pip install minio flask
+RUN pip install minio flask flask-cors
 
 WORKDIR /app
 

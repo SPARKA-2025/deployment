@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-RUN pip install influxdb_client flask
+RUN pip install influxdb_client flask flask-cors
 
 WORKDIR /app
 

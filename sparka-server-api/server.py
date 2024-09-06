@@ -164,7 +164,8 @@ def predict():
         prediction_metadata = predictions[0]
         server_url = "http://influxdb_gateway:5000/save"
         object_storage_server = "http://minio_gateway:5002/upload"
-        filename = f'{prediction_metadata["vehicle_class"]}-{prediction_metadata["plate_number"]}-{int(time.time()*10000000)}'
+        time_now = str(int(time.time()*10000000))
+        filename = f'{prediction_metadata["vehicle_class"]}-{prediction_metadata["plate_number"]}-{time_now}'
 
         payload = {
             "measurement": "plate_detection",
@@ -180,6 +181,7 @@ def predict():
             "tags": {
                 "vehicle_class": prediction_metadata["vehicle_class"],
                 "plate_number": prediction_metadata["plate_number"],
+                "id": time_now,
             }
         }
 
