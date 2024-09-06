@@ -1,22 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const GroupedDataComponent = ({ data }) => {
+  return (
+    <div>
+      <table class="table-auto">
+      <thead>
+        <tr>
+          <th>Log</th>
+          <th>Plate Number </th>
+          <th>Plate Number X</th>
+          <th>Plate Number Y</th>
+          <th>Vehicle</th>
+          <th>Vehicle X</th>
+          <th>Vehicle Y</th>
+          <th>Image</th>
+        </tr>
+      </thead>
+      <tbody>
+            {data.map((item) => (
+            <tr key={item.fields.filename}>
+                {Object.entries(item.fields).map(([field, value]) => (
+                  <td key={field}>
+                    {value}
+                  </td>
+                ))}
+                <td>
+                  <img src={`http://localhost:5002/download/${item.fields.filename}.jpg`} alt="Girl in a jacket" width="500" height="600"></img>
+                </td>
+                {console.log(item.fields.filename)}
+            </tr>
+          ))}
+      </tbody>
+    </table>
+    </div>
+  );
+};
+
 function VehicleMetadata() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [measurement, setMeasurement] = useState('plate_detection');
-  const [start, setStart] = useState('-5m');
+  const [start, setStart] = useState('-2h');
   const [stop, setStop] = useState('now()');
   const [refreshInterval, setRefreshInterval] = useState(0); // in seconds
-
-  // useEffect(() => {
-  //   fetchData();
-
-  //   if (refreshInterval > 0) {
-  //     const interval = setInterval(fetchData, refreshInterval * 1000);
-  //     return () => clearInterval(interval); // Cleanup on unmount
-  //   }
-  // }, [measurement, start, stop, refreshInterval]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -26,7 +53,32 @@ function VehicleMetadata() {
         start: start,
         stop: stop,
       });
-      console.log(response)
+
+      console.log(response.data)
+      const groupedData = {};
+
+      // Iterate over each object in the array
+      response.data.forEach(item => {
+        const id = item.tags.id;
+
+        // If the id doesn't exist in groupedData, initialize it
+        if (!groupedData[id]) {
+          groupedData[id] = {
+            id: id,
+            fields: {}
+          };
+        }
+
+        // Add the field and value to the corresponding id's fields object
+        groupedData[id].fields[item.field] = item.value;
+      });
+
+      // Convert the groupedData object back into an array of objects if needed
+      const result = Object.values(groupedData);
+
+      // Output the result
+      console.log(result);
+      setData(result)
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -35,6 +87,7 @@ function VehicleMetadata() {
 
   return (
     <div className="container mx-auto p-4">
+
       <h1 className="text-2xl font-bold mb-4">Vehicle Metadata</h1>
 
       <form className="mb-4 flex space-x-4">
@@ -86,36 +139,10 @@ function VehicleMetadata() {
           />
         </div>
       </form>
-
-      <button onClick={fetchData}>Click</button>
-
-      {loading ? (
-        <div className="text-center">
-          <div className="loader"></div>
-          <p>Loading...</p>
-        </div>
-      ) : (
-        <table className="table-auto w-full border-collapse border border-gray-200">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-300 p-2">Plate Number</th>
-              <th className="border border-gray-300 p-2">Vehicle</th>
-              <th className="border border-gray-300 p-2">Image</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((item) => (
-              <tr key={item.plateNumber}>
-                <td className="border border-gray-300 p-2">{item.plateNumber}</td>
-                <td className="border border-gray-300 p-2">{item.vehicle}</td>
-                <td className="border border-gray-300 p-2">
-                  <img src={item.image} alt="Vehicle" className="w-24 h-24 object-cover" />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={fetchData}>
+        Click
+      </button>
+      <GroupedDataComponent data={data}/>
     </div>
   );
 }

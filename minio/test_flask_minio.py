@@ -4,8 +4,8 @@ import requests
 server_url = "http://127.0.0.1:5000"
 
 # Paths to test image files
-upload_image_path = "image.jpg"  # Replace with the path to your test image
-download_image_name = "asd.jpg"  # Replace with the path to save the downloaded image
+upload_image_path = "image_random.jpg"  # Replace with the path to your test image
+download_image_name = "image.jpg"  # Replace with the path to save the downloaded image
 
 import time
 print()
