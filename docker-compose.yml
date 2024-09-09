@@ -24,8 +24,8 @@ services:
       - minio
 
   grafana:
-    image: grafana/grafana:latest
     container_name: grafana
+    image: grafana/grafana:latest
     depends_on:
       - influxdb
     ports:

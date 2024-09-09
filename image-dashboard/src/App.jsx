@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const GroupedDataComponent = ({ data }) => {
+const GroupedDataComponent = ({ data, link }) => {
   return (
     <div>
-      <table class="table-auto">
+      <table className="table-auto">
       <thead>
         <tr>
           <th>Log</th>
@@ -26,7 +26,7 @@ const GroupedDataComponent = ({ data }) => {
                   </td>
                 ))}
                 <td>
-                  <img src={`http://minio_gateway/download/${item.fields.filename}.jpg`} alt="image" width="500" height="600"></img>
+                  <img src={`http://${link}:5002/download/${item.fields.filename}.jpg`} alt="image" width="500" height="600"></img>
                 </td>
                 {console.log(item.fields.filename)}
             </tr>
@@ -44,11 +44,12 @@ function VehicleMetadata() {
   const [start, setStart] = useState('-2h');
   const [stop, setStop] = useState('now()');
   const [refreshInterval, setRefreshInterval] = useState(0); // in seconds
+  let link = '35.219.75.160'
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axios.post('http://influxdb_gateway:5000/query', {
+      const response = await axios.post(`http://${link}:5000/query`, {
         measurement: measurement,
         start: start,
         stop: stop,
@@ -142,7 +143,7 @@ function VehicleMetadata() {
       <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={fetchData}>
         Click
       </button>
-      <GroupedDataComponent data={data}/>
+      <GroupedDataComponent data={data} link={link}/>
     </div>
   );
 }
