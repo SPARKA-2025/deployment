@@ -7,7 +7,7 @@ import os
 from ultralytics import YOLO
 from paddleocr import PaddleOCR
 from sort import Sort
-import torch
+from secrets import token_urlsafe
 import requests
 import json
 from flask_cors import CORS
@@ -181,7 +181,7 @@ def predict():
         server_url = "http://influxdb_gateway:5000/save"
         object_storage_server = "http://minio_gateway:5002/upload"
         time_now = str(int(time.time()*10000000))
-        filename = f'{prediction_metadata["vehicle_class"]}-{prediction_metadata["plate_number"]}-{time_now}'
+        filename = f'{prediction_metadata["vehicle_class"]}-{prediction_metadata["plate_number"]}-{time_now}-{token_urlsafe(32)}'
 
         payload = {
             "measurement": "plate_detection",

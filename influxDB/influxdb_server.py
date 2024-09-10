@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
-from influxdb_client.client.query_api import QueryApi
+import jwt
 from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
@@ -10,11 +10,34 @@ CORS(app)
 bucket = "sparka"
 org = "RemostoTeam"
 token = "n6HCiO-f5dz1vRGzeT64eid9As5FvY_Wn0sR_bB9bXbPd1ZEeiC4pwJ4FyexRQD9QqT-NS3Bz7ItppVg0nks0Q=="
-url = "http://influxdb:8086"
+url = "http://localhost:8086"
 
 client = InfluxDBClient(url=url, token=token, org=org)
 write_api = client.write_api(write_options=SYNCHRONOUS)
 query_api = client.query_api()
+
+SECRET_KEY = 'my-secret-key'
+
+def token_required(f):
+    def decorator(*args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({"message": "Token is missing"}), 401
+        
+        try:
+            # Extract the token from the "Bearer " prefix
+            token = token.split(" ")[1]
+            # Decode the token
+            jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return jsonify({"message": "Token has expired"}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"message": "Invalid token"}), 401
+        
+        return f(*args, **kwargs)
+    
+    return decorator
+
 
 @app.route('/check', methods=['GET'])
 def check():
@@ -45,14 +68,14 @@ def save_data():
     except Exception as e:
         print(str(e))
         return jsonify({"error": str(e)}), 500
-    
 
 @app.route('/query', methods=['POST'])
+@token_required
 def query_data():
     data = request.json
     measurement = data.get('measurement')
-    start_time = data.get('start', '-1h')  # Default to last 1 hour
-    stop_time = data.get('stop', 'now()')  # Default to current time
+    start_time = data.get('start', '-1h')  
+    stop_time = data.get('stop', 'now()')
 
     if not measurement:
         return jsonify({"error": "Measurement parameter is required"}), 400
