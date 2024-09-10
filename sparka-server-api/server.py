@@ -12,9 +12,9 @@ import requests
 import json
 from flask_cors import CORS
 
-torch.backends.mkl.enabled = True
-torch.set_num_threads(torch.get_num_threads())
-cv2.setNumThreads(cv2.getNumThreads())
+# torch.backends.mkl.enabled = True
+# torch.set_num_threads(torch.get_num_threads())
+# cv2.setNumThreads(cv2.getNumThreads())
 
 app = Flask(__name__)
 CORS(app)
@@ -27,8 +27,8 @@ if not os.path.exists(SAVE_DIR):
 
 # Initialize models
 ocr = PaddleOCR(lang='en', det=True, rec=True, use_angle_cls=False, det_db_unclip_ratio=1.2, det_db_box_thresh=0.1, drop_score=0.6, max_text_length=9)
-plate_model = YOLO("updated_model3.pt")
-vehicle_model = YOLO("yolov8n.pt")
+plate_model = YOLO("model/updated_model3.pt")
+vehicle_model = YOLO("model/yolov8n.pt")
   
 tracker = Sort(max_age=20, min_hits=3, iou_threshold=0.3)
 
@@ -110,12 +110,26 @@ def process_image(image):
         vehicle_img = image[int(vy1):int(vy2), int(vx1):int(vx2)]
         
         plate_detections = detect_plate(vehicle_img)
+
         results_tracker = plate_tracker.update(plate_detections)
 
         for result in results_tracker:
             x1, y1, x2, y2, id = result
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
             cx, cy = x1 + (x2 - x1) // 2, y1 + (y2 - y1) // 2
+
+            try:
+                px1, py1, px2, py2 = plate_detections[0][0], plate_detections[0][1], plate_detections[0][2], plate_detections[0][3]
+                rpx1, rpy1, rpx2, rpy2 = vehicle['x1'] + px1, vehicle['y1'] + py1, vehicle['x1'] + px2, vehicle['y1'] + py2
+                print(rpx1, rpy1, rpx2, rpy2)
+                x_condition = 600<(rpx1+rpx2)/2<1100
+                y_condition = 500<(rpy1+rpy2)/2<800
+                print(x_condition, y_condition)
+                if not x_condition or not y_condition:
+                    print("belum masuk persyaratan")
+                    break
+            except:
+                print("hasil deteksinya tidak ada", plate_detections)
 
             if id not in processed_ids:
                 processed_ids[id] = True
@@ -127,7 +141,9 @@ def process_image(image):
                         "vehicle_class": vehicle['class'],
                         "plate_number": plate_text,
                         "vehicle_position": {"x1": vehicle['x1'], "y1": vehicle['y1'], "x2": vehicle['x2'], "y2": vehicle['y2']},
-                        "plate_position": {"x1": x1, "y1": y1, "x2": x2, "y2": y2}
+                        "plate_position": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
+                        "status": {"x": str(x_condition), "y": str(y_condition)},
+                        "position": [rpx1, rpy1, rpx2, rpy2]
                     })
 
                     # Identify closest vehicle and save image
@@ -188,6 +204,7 @@ def predict():
         upload_image(image, filename, object_storage_server)
         status_code = send_to_server(payload, server_url)
         print(status_code)
+        print(predictions)
 
     return jsonify(predictions)
 

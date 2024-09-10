@@ -21,15 +21,16 @@ while True:
         is_success, buffer = cv2.imencode(".jpg", frame)
         if is_success:
             # Convert buffer to bytes and save to Redis
-            image_bytes = buffer.tobytes()
-            r.set('live_stream', image_bytes)
+            try:
+                image_bytes = buffer.tobytes()
+                coba = r.set('live_stream', image_bytes)
+            except:
+                print('error')
+
     else:
         # Video has ended; restart playback
         print('error')
-
     # Break the loop with a key press
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
 
 # Release resources
 cap.release()

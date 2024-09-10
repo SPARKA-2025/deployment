@@ -9,4 +9,5 @@ RUN pip install flask-cors
 
 EXPOSE 5001
 
-CMD ["/usr/bin/supervisord"]
+# CMD ["/usr/bin/supervisord"]
+CMD ["python", "server.py"]
