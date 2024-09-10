@@ -18,15 +18,20 @@ def generate_jwt_token(user_id):
     
     # Encode the payload to create the JWT token
     token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+    
+    # Convert the token from bytes to string if necessary
+    if isinstance(token, bytes):
+        token = token.decode('utf-8')
+    
     return token
 
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
-    if data['username'] == 'remosto' and data['password'] == 'remosto123':  # Replace with real auth logic
+    if data['username'] == 'remosto' and data['password'] == 'remosto123': 
         token = generate_jwt_token(user_id="1234")
         return jsonify({"token": token}), 200
     return jsonify({"message": "Invalid credentials"}), 401
 
 if __name__ == '__main__':
-    app.run(port=5001)
+    app.run(host="0.0.0.0", port=5003)

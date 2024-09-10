@@ -82,6 +82,13 @@ services:
     depends_on:
       - influxdb-gateway
       - minio-gateway
+      - sparka-auth-service
+  
+  sparka-auth-service:
+    image: sparka-auth-service
+    container_name: sparka_auth_service
+    ports:
+      - 5003:5003
 
 volumes:
   minio_data:

@@ -10,7 +10,7 @@ CORS(app)
 bucket = "sparka"
 org = "RemostoTeam"
 token = "n6HCiO-f5dz1vRGzeT64eid9As5FvY_Wn0sR_bB9bXbPd1ZEeiC4pwJ4FyexRQD9QqT-NS3Bz7ItppVg0nks0Q=="
-url = "http://localhost:8086"
+url = "http://influxdb:8086"
 
 client = InfluxDBClient(url=url, token=token, org=org)
 write_api = client.write_api(write_options=SYNCHRONOUS)
