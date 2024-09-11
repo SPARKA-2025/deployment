@@ -1,6 +1,6 @@
 # Optical Character Recognition Operations System 
 ## Arsitektur Sistem
-![System Architecture](https://github.com/user-attachments/assets/b2d22e8b-5bb8-4a7f-ab29-232041039b63)
+![System Architecture](https://github.com/user-attachments/assets/6c428100-fdc9-448f-bea8-dbfc24dc7a13)
 
 Arsitektur sistem yang ditampilkan pada diagram menggambarkan aliran data dan komponen yang terlibat dalam sebuah sistem berbasis kontainer dan lingkungan lokal yang mendukung penerapan pencatatan dan analisis data dari berbagai sumber. Berikut adalah penjelasan detail dari setiap komponen:
 
@@ -36,6 +36,15 @@ Alat visualisasi yang mengambil data dari InfluxDB Database Server dan menyajika
 #### React App Dashboard
 Antarmuka pengguna yang menampilkan data yang diambil dari Min.io Gateway dan InfluxDB Gateway. Pengguna dapat melihat hasil pemrosesan data, gambar, dan metrik lainnya di sini.
 
+#### Auth Service SSO
+Mengelola dan memberikan token ke aplikasi untuk dapat mengakses sumber daya yang diizinkan.
+
+#### Prometheus
+Menyediakan gateway dan database untuk dapat ditampilkan pada grafana
+
+#### Node Exporter
+Menyediakan metrics sumber daya dari host ke sistem prometheus untuk bisa dilakukan scraping
+
 ### Local Environment
 #### Redis
 Penyimpanan data in-memory yang digunakan untuk mengelola antrean atau cache data sementara yang dibutuhkan oleh komponen-komponen lain di lingkungan lokal.
@@ -61,8 +70,16 @@ Dashboard app memberikan informasi terkait log deteksi beserta gambar dari detek
 ![React Dashboard App](https://github.com/user-attachments/assets/c1c9a5da-ba73-4476-b173-7f4dd6dc6baf)
 
 ## Menjalankan ekosistem operations
+### Menjalankan semua aplikasi
 ```
 docker compose up
+```
+### Modifikasi docker engine untuk profiling
+```
+{
+  "experimental": true,
+  "metrics-addr": "127.0.0.1:9323"
+}
 ```
 ## Port mapping information
 
@@ -70,6 +87,9 @@ docker compose up
 - 5000 InfluxDB Gateway
 - 5001 Sparka-API
 - 5002 Minio Gateway
+- 5003 Auth Service SSO
 - 5137 React App
 - 8086 InfluxDB Server Database
 - 9000 Minio API Server
+- 9091 Prometheus
+- 9101 Node Exporter
