@@ -10,7 +10,7 @@ const VehicleMetadata = ({ token, onLogout }) => {
   const [start, setStart] = useState('-2d');
   const [stop, setStop] = useState('now()');
   const [refreshInterval, setRefreshInterval] = useState(0);
-  const link = 'localhost';
+  const link = '35.219.75.160';
 
   const fetchData = async () => {
     setLoading(true);

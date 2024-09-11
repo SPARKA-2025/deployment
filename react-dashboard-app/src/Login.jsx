@@ -8,7 +8,7 @@ const Login = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const link = "localhost"
+  const link = "35.219.75.160"
 
   const handleSubmit = async (e) => {
     e.preventDefault();
