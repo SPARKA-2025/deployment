@@ -1,6 +1,6 @@
 import React from 'react';
 
-const GroupedDataComponent = ({ data, link }) => {
+const GroupedDataComponent = ({ data, url }) => {
   return (
     <div>
       <table className="table-auto">
@@ -26,7 +26,7 @@ const GroupedDataComponent = ({ data, link }) => {
               ))}
               <td>
                 <img
-                  src={`http://${link}:5002/download/${item.fields.filename}.jpg`}
+                  src={`http://${url}:5002/download/${item.fields.filename}.jpg`}
                   alt="image"
                   width="500"
                   height="600"

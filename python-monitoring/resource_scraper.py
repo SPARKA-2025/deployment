@@ -62,10 +62,8 @@ try:
                 "location": "cloud_server"
             }
         }
-        print(payload)
         status_code, response = send_to_server(payload, server_url)
-        print(f"Server response status code: {status_code}")
-        print(f"response {response}")
-        time.sleep(1)
+        time.sleep(0.5)
+
 except KeyboardInterrupt:
     print("Monitoring stopped.")

@@ -28,6 +28,7 @@ def generate_jwt_token(user_id):
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
+    print(data)
     if data['username'] == 'remosto' and data['password'] == 'remosto123': 
         token = generate_jwt_token(user_id="1234")
         return jsonify({"token": token}), 200

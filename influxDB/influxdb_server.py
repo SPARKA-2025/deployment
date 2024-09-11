@@ -16,7 +16,7 @@ client = InfluxDBClient(url=url, token=token, org=org)
 write_api = client.write_api(write_options=SYNCHRONOUS)
 query_api = client.query_api()
 
-SECRET_KEY = 'my-secret-key'
+SECRET_KEY = 'my-secret-key-that-long-and-secure-hehe'
 
 def token_required(f):
     def decorator(*args, **kwargs):
