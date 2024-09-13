@@ -37,6 +37,35 @@ CLASS_NAMES = ["plat"]
 VEHICLE_CLASS_NAMES = vehicle_model.names
 PROCESSED_IDS = {}
 
+server_url = "http://influxdb_gateway:5000/save"
+object_storage_server = "http://minio_gateway:5002/upload"
+
+def request_influxdb_gateway(prediction_metadata, image):
+    time_now = str(int(time.time()*10000000))
+    filename = f'{prediction_metadata["vehicle_class"]}-{prediction_metadata["plate_number"]}-{time_now}-{token_urlsafe(32)}'
+
+    payload = {
+        "measurement": "plate_detection",
+        "fields": {
+            "plate_position_x": (prediction_metadata['plate_position']['x1'] + prediction_metadata['plate_position']['x2'])/2,
+            "plate_position_y": (prediction_metadata['plate_position']['y1'] + prediction_metadata['plate_position']['y2'])/2,
+            "vehicle_position_x": (prediction_metadata['vehicle_position']['x1'] + prediction_metadata['vehicle_position']['x2'])/2,
+            "vehicle_position_y": (prediction_metadata['vehicle_position']['y1'] + prediction_metadata['vehicle_position']['y2'])/2,
+            "plate_number": prediction_metadata["plate_number"],
+            "vehicle_class": prediction_metadata["vehicle_class"],
+            "filename": filename,
+        },
+        "tags": {
+            "vehicle_class": prediction_metadata["vehicle_class"],
+            "plate_number": prediction_metadata["plate_number"],
+            "id": time_now,
+        }
+    }
+
+    upload_image(image, filename, object_storage_server)
+    status_code = send_to_server(payload, server_url)
+    return status_code
+
 def send_to_server(data, server_url):
     headers = {'Content-Type': 'application/json'}
     response = requests.post(server_url, data=json.dumps(data), headers=headers)
@@ -77,7 +106,6 @@ def detect_vehicles(image):
 
 def detect_plate(vehicle_img):
     plate_results = plate_model(vehicle_img, device='cpu', stream=True)
-    # print("plate", plate_results)
     plate_detections = np.empty((0, 5))
     for r in plate_results:
         boxes = r.boxes
@@ -101,6 +129,8 @@ def extract_plate_text(image):
 
 def process_image(image):
     vehicle_detections = detect_vehicles(image)
+    print(vehicle_detections)
+    print(type(vehicle_detections))
     predictions = []
     plate_tracker = tracker
     processed_ids = PROCESSED_IDS
@@ -110,6 +140,9 @@ def process_image(image):
         vehicle_img = image[int(vy1):int(vy2), int(vx1):int(vx2)]
         
         plate_detections = detect_plate(vehicle_img)
+
+        print(plate_detections)
+        print(type(plate_detections))
 
         results_tracker = plate_tracker.update(plate_detections)
 
@@ -126,6 +159,17 @@ def process_image(image):
                 y_condition = 500<(rpy1+rpy2)/2<800
                 print(x_condition, y_condition)
                 if not x_condition or not y_condition:
+                    image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+                    metadata = {
+                        "vehicle_class": vehicle['class'],
+                        "plate_number": 'No Detection',
+                        "vehicle_position": {"x1": vehicle['x1'], "y1": vehicle['y1'], "x2": vehicle['x2'], "y2": vehicle['y2']},
+                        "plate_position": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
+                        "status": {"x": str(x_condition), "y": str(y_condition)},
+                        "position": [rpx1, rpy1, rpx2, rpy2]
+                    }
+
+                    request_influxdb_gateway(metadata, image)
                     print("belum masuk persyaratan")
                     break
             except:
@@ -178,33 +222,8 @@ def predict():
 
     if len(predictions) != 0:
         prediction_metadata = predictions[0]
-        server_url = "http://influxdb_gateway:5000/save"
-        object_storage_server = "http://minio_gateway:5002/upload"
-        time_now = str(int(time.time()*10000000))
-        filename = f'{prediction_metadata["vehicle_class"]}-{prediction_metadata["plate_number"]}-{time_now}-{token_urlsafe(32)}'
 
-        payload = {
-            "measurement": "plate_detection",
-            "fields": {
-                "plate_position_x": (prediction_metadata['plate_position']['x1'] + prediction_metadata['plate_position']['x2'])/2,
-                "plate_position_y": (prediction_metadata['plate_position']['y1'] + prediction_metadata['plate_position']['y2'])/2,
-                "vehicle_position_x": (prediction_metadata['vehicle_position']['x1'] + prediction_metadata['vehicle_position']['x2'])/2,
-                "vehicle_position_y": (prediction_metadata['vehicle_position']['y1'] + prediction_metadata['vehicle_position']['y2'])/2,
-                "plate_number": prediction_metadata["plate_number"],
-                "vehicle_class": prediction_metadata["vehicle_class"],
-                "filename": filename,
-            },
-            "tags": {
-                "vehicle_class": prediction_metadata["vehicle_class"],
-                "plate_number": prediction_metadata["plate_number"],
-                "id": time_now,
-            }
-        }
-
-        upload_image(image, filename, object_storage_server)
-        status_code = send_to_server(payload, server_url)
-        print(status_code)
-        print(predictions)
+        request_influxdb_gateway(prediction_metadata, image)
 
     return jsonify(predictions)
 

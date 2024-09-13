@@ -10,13 +10,13 @@ const VehicleMetadata = ({ token, onLogout }) => {
   const [start, setStart] = useState('-2d');
   const [stop, setStop] = useState('now()');
   const [refreshInterval, setRefreshInterval] = useState(0);
-  const link = '35.219.75.160';
+  const influxdb_url = 'https://raiharc.biz.id/gateway/influxdb';
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        `http://${link}:5000/query`,
+        `${link}/query`,
         { measurement, start, stop },
         {
           headers: {
@@ -126,7 +126,7 @@ const VehicleMetadata = ({ token, onLogout }) => {
         {loading ? (
           <p>Loading...</p>
         ) : (
-          <GroupedDataComponent data={data} url={link} />
+          <GroupedDataComponent data={data} url={'https://raiharc.biz.id/gateway/minio/download'} />
         )}
       </div>
     </div>

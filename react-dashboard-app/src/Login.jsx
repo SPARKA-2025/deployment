@@ -8,12 +8,12 @@ const Login = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const link = "35.219.75.160"
+  const link = "https://raiharc.biz.id/gateway/auth/login"
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`http://${link}:5003/login`, { username, password });
+      const response = await axios.post(`${link}`, { username, password });
       const { token } = response.data;
       onLogin(token);
       navigate('/');
