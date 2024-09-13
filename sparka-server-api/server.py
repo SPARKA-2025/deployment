@@ -11,13 +11,21 @@ from secrets import token_urlsafe
 import requests
 import json
 from flask_cors import CORS
+import grpc
 
-# torch.backends.mkl.enabled = True
-# torch.set_num_threads(torch.get_num_threads())
-# cv2.setNumThreads(cv2.getNumThreads())
+import detection_pb2
+import detection_pb2_grpc
+import vehicle_detection_pb2
+import vehicle_detection_pb2_grpc
 
 app = Flask(__name__)
 CORS(app)
+
+channelPlate = grpc.insecure_channel('localhost:50051')
+stubPlate = detection_pb2_grpc.PlateDetectionStub(channelPlate)
+
+channelVehicle = grpc.insecure_channel('localhost:50052')
+stubVehicle = vehicle_detection_pb2_grpc.VehicleDetectionStub(channelVehicle)
 
 # Configuration
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -91,30 +99,31 @@ def preprocess_image(image):
     return blurred_image
 
 def detect_vehicles(image):
-    results = vehicle_model(image, device='cpu')
+    _, img_encoded = cv2.imencode('.jpg', image)
+    image_data = img_encoded.tobytes()
+
+    response = stubVehicle.Detect(vehicle_detection_pb2.ImageRequest(image_data=image_data))
+
+    # Display results
     detections = []
-    for r in results:
-        boxes = r.boxes
-        for box in boxes:
-            x1, y1, x2, y2 = map(int, box.xyxy[0])
-            conf = round(float(box.conf[0]), 2)
-            cls = int(box.cls[0])
-            vehicle_class = VEHICLE_CLASS_NAMES[cls]
-            if vehicle_class in ["car", "bus", "truck"] and conf > 0.5:
-                detections.append({"x1": x1, "y1": y1, "x2": x2, "y2": y2, "class": vehicle_class, "confidence": conf})
+    for vehicle in response.vehicles:
+        detections.append({
+            'x1': vehicle.x1,
+            'y1': vehicle.y1,
+            'x2': vehicle.x2,
+            'y2': vehicle.y2,
+            'class': vehicle.detected_class,
+            'confidence': vehicle.confidence,
+        })
     return detections
 
 def detect_plate(vehicle_img):
-    plate_results = plate_model(vehicle_img, device='cpu', stream=True)
-    plate_detections = np.empty((0, 5))
-    for r in plate_results:
-        boxes = r.boxes
-        for box in boxes:
-            x1, y1, x2, y2 = box.xyxy[0]
-            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-            conf = round(float(box.conf[0]), 2)
-            if CLASS_NAMES[int(box.cls[0])] == "plat" and conf > 0.5:
-                plate_detections = np.vstack((plate_detections, [x1, y1, x2, y2, conf]))
+    _, img_encoded = cv2.imencode('.jpg', vehicle_img)
+    image_data = img_encoded.tobytes()
+    response = stubPlate.Detect(detection_pb2.ImageRequest(image_data=image_data))
+    metadata = response.plates[0]
+    plate_detections = np.vstack((np.empty((0, 5)), [metadata.x1,metadata.y1,metadata.x2,metadata.y2,metadata.confidence]))
+
     return plate_detections
 
 def extract_plate_text(image):
