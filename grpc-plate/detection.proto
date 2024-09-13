@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package detection;
+
+service PlateDetection {
+  rpc Detect (ImageRequest) returns (PlateResponse) {}
+}
+
+message ImageRequest {
+  bytes image_data = 1;
+}
+
+message Plate {
+  int32 x1 = 1;
+  int32 y1 = 2;
+  int32 x2 = 3;
+  int32 y2 = 4;
+  float confidence = 5;
+}
+
+message PlateResponse {
+  repeated Plate plates = 1;
+}
