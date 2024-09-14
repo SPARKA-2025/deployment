@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package plate_text_extraction;
+
+service PlateTextExtraction {
+  rpc Extract (ImageRequest) returns (TextResponse) {}
+}
+
+message ImageRequest {
+  bytes image_data = 1;
+}
+
+message TextResponse {
+  string text = 1;
+}

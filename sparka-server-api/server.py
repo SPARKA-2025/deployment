@@ -17,6 +17,8 @@ import detection_pb2
 import detection_pb2_grpc
 import vehicle_detection_pb2
 import vehicle_detection_pb2_grpc
+import plate_text_extraction_pb2
+import plate_text_extraction_pb2_grpc
 
 app = Flask(__name__)
 CORS(app)
@@ -27,6 +29,9 @@ stubPlate = detection_pb2_grpc.PlateDetectionStub(channelPlate)
 channelVehicle = grpc.insecure_channel('localhost:50052')
 stubVehicle = vehicle_detection_pb2_grpc.VehicleDetectionStub(channelVehicle)
 
+channelOCR = grpc.insecure_channel('localhost:50053')
+stubOCR = plate_text_extraction_pb2_grpc.PlateTextExtractionStub(channelOCR)
+
 # Configuration
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 SAVE_DIR = "saved_images"
@@ -34,15 +39,15 @@ if not os.path.exists(SAVE_DIR):
     os.makedirs(SAVE_DIR)
 
 # Initialize models
-ocr = PaddleOCR(lang='en', det=True, rec=True, use_angle_cls=False, det_db_unclip_ratio=1.2, det_db_box_thresh=0.1, drop_score=0.6, max_text_length=9)
-plate_model = YOLO("model/updated_model3.pt")
-vehicle_model = YOLO("model/yolov8n.pt")
+# ocr = PaddleOCR(lang='en', det=True, rec=True, use_angle_cls=False, det_db_unclip_ratio=1.2, det_db_box_thresh=0.1, drop_score=0.6, max_text_length=9)
+# plate_model = YOLO("model/updated_model3.pt")
+# vehicle_model = YOLO("model/yolov8n.pt")
   
 tracker = Sort(max_age=20, min_hits=3, iou_threshold=0.3)
 
 # Constants
-CLASS_NAMES = ["plat"]
-VEHICLE_CLASS_NAMES = vehicle_model.names
+# CLASS_NAMES = ["plat"]
+# VEHICLE_CLASS_NAMES = vehicle_model.names
 PROCESSED_IDS = {}
 
 server_url = "http://influxdb_gateway:5000/save"
@@ -127,14 +132,20 @@ def detect_plate(vehicle_img):
     return plate_detections
 
 def extract_plate_text(image):
-    result = ocr.ocr(image, cls=True)
-    if result is None or len(result) == 0 or result[0] is None:
-        return "No text detected"
-    try:
-        return ''.join([res[1][0] for res in result[0]])
-    except Exception as e:
-        print(f"Error extracting text: {e}")
-        return "Error during text extraction"
+    _, img_encoded = cv2.imencode('.jpg', image)
+    image_data = img_encoded.tobytes()
+    response = stubOCR.Extract(plate_text_extraction_pb2.ImageRequest(image_data=image_data))
+    return response.text
+
+    # result = ocr.ocr(image, cls=True)
+    # if result is None or len(result) == 0 or result[0] is None:
+    #     return "No text detected"
+    # try:
+    #     return ''.join([res[1][0] for res in result[0]])
+    # except Exception as e:
+    #     print(f"Error extracting text: {e}")
+    #     return "Error during text extraction"
+
 
 def process_image(image):
     vehicle_detections = detect_vehicles(image)
