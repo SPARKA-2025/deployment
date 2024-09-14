@@ -23,13 +23,13 @@ import plate_text_extraction_pb2_grpc
 app = Flask(__name__)
 CORS(app)
 
-channelPlate = grpc.insecure_channel('localhost:50051')
-stubPlate = detection_pb2_grpc.PlateDetectionStub(channelPlate)
-
-channelVehicle = grpc.insecure_channel('localhost:50052')
+channelVehicle = grpc.insecure_channel('grpc_vehicle_server:50051')
 stubVehicle = vehicle_detection_pb2_grpc.VehicleDetectionStub(channelVehicle)
 
-channelOCR = grpc.insecure_channel('localhost:50053')
+channelPlate = grpc.insecure_channel('grpc_plate_server:50052')
+stubPlate = detection_pb2_grpc.PlateDetectionStub(channelPlate)
+
+channelOCR = grpc.insecure_channel('grpc_ocr_server:50053')
 stubOCR = plate_text_extraction_pb2_grpc.PlateTextExtractionStub(channelOCR)
 
 # Configuration

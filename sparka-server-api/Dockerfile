@@ -4,10 +4,12 @@ WORKDIR /app
 
 COPY . .
 
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN pip install flask-cors
+
+RUN pip uninstall -y protobuf
+
+RUN pip install grpcio==1.49.0 grpcio-tools==1.49.0
 
 EXPOSE 5001
 
-# CMD ["/usr/bin/supervisord"]
 CMD ["python", "server.py"]
