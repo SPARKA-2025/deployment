@@ -93,3 +93,6 @@ docker compose up
 - 9000 Minio API Server
 - 9091 Prometheus
 - 9101 Node Exporter
+- 50051 gRPC Vehicle Server
+- 50052 gRPC Plate Server
+- 50053 gRPC OCR Server

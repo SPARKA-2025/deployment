@@ -60,6 +60,9 @@ services:
       - influxdb
       - influxdb-gateway
       - minio
+      - grpc-vehicle-server
+      - grpc-plate-server
+      - grpc-ocr-server
     ports:
       - "5001:5001"
 
@@ -102,15 +105,27 @@ services:
 
   node-exporter:
     image: prom/node-exporter
-    container_name: node-exporter
+    container_name: node_exporter
     ports:
       - 9101:9100
 
   python-monitoring:
     image: equehours/python-monitoring
-    container_name: python-monitoring
+    container_name: python_monitoring
     depends_on:
       - influxdb-gateway
+
+  grpc-plate-server:
+    image: equehours/grpc-plate-server
+    container_name: grpc_plate_server
+    
+  grpc-ocr-server:
+    image: equehours/grpc-ocr-server
+    container_name: grpc_ocr_server
+
+  grpc-vehicle-server:
+    image: equehours/grpc-vehicle-server
+    container_name: grpc_vehicle_server
 
 volumes:
   minio_data:
