@@ -1,19 +1,19 @@
 version: '3'
 services:
-  minio:
-    container_name: minio_server
-    image: quay.io/minio/minio:RELEASE.2022-02-18T01-50-10Z
-    volumes:
-      - minio_data:/data
-    ports:
-      - 9000:9000
-      - 9001:9001
-    environment:
-      MINIO_ROOT_USER: 'remosto'
-      MINIO_ROOT_PASSWORD: 'remosto123'
-      MINIO_ADDRESS: ':9000'
-      MINIO_CONSOLE_ADDRESS: ':9001'
-    command: minio server /data
+  # minio:
+  #   container_name: minio_server
+  #   image: quay.io/minio/minio:RELEASE.2022-02-18T01-50-10Z
+  #   volumes:
+  #     - minio_data:/data
+  #   ports:
+  #     - 9000:9000
+  #     - 9001:9001
+  #   environment:
+  #     MINIO_ROOT_USER: 'remosto'
+  #     MINIO_ROOT_PASSWORD: 'remosto123'
+  #     MINIO_ADDRESS: ':9000'
+  #     MINIO_CONSOLE_ADDRESS: ':9001'
+  #   command: minio server /data
 
   # minio-gateway: 
   #   container_name: minio_gateway
@@ -45,13 +45,20 @@ services:
   #   ports:
   #     - "5000:5000"  
 
-  # influxdb:
-  #   image: influxdb:latest
-  #   container_name: influxdb
-  #   ports:
-  #     - "8086:8086" 
-  #   volumes:
-  #     - influxdb-storage:/var/lib/influxdb2
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    ports:
+      - "8086:8086" 
+    volumes:
+      - influxdb-storage:/var/lib/influxdb2
+
+  ampq-influxdb-consumer:
+    image: equehours/ampq-influxdb-consumer
+    container_name: ampq_influxdb_consumer
+    depends_on:
+      - influxdb
+      - rabbitmq
 
   # sparka-api:
   #   image: equehours/sparka-api:latest
@@ -142,24 +149,24 @@ services:
     environment:
       RABBITMQ_NODE_IP_ADDRESS: "0.0.0.0" 
 
-  mqtt:
-    image: "eclipse-mosquitto"
-    container_name: mqtt
-    ports:
-      - "1883:1883"
-      - "9002:9001"
-    command: >
-      /bin/sh -c "echo 'listener 1883 0.0.0.0' > /mosquitto/config/mosquitto.conf &&
-                  echo 'allow_anonymous true' >> /mosquitto/config/mosquitto.conf &&
-                  mosquitto -c /mosquitto/config/mosquitto.conf"
+  # mqtt:
+  #   image: "eclipse-mosquitto"
+  #   container_name: mqtt
+  #   ports:
+  #     - "1883:1883"
+  #     - "9002:9001"
+  #   command: >
+  #     /bin/sh -c "echo 'listener 1883 0.0.0.0' > /mosquitto/config/mosquitto.conf &&
+  #                 echo 'allow_anonymous true' >> /mosquitto/config/mosquitto.conf &&
+  #                 mosquitto -c /mosquitto/config/mosquitto.conf"
 
-  minio-ampq-consumer:
-    container_name: ampq_minio_consumer
-    image: equehours/ampq-minio-consumer
-    depends_on:
-      - rabbitmq
-      - minio
-      - mqtt
+  # minio-ampq-consumer:
+  #   container_name: ampq_minio_consumer
+  #   image: equehours/ampq-minio-consumer
+  #   depends_on:
+  #     - rabbitmq
+  #     - minio
+  #     - mqtt
 
 volumes:
   minio_data:
