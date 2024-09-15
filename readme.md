@@ -1,8 +1,14 @@
 # Optical Character Recognition Operations System 
 ## Arsitektur Sistem
-![System Architecture](https://github.com/user-attachments/assets/6c428100-fdc9-448f-bea8-dbfc24dc7a13)
+![System Architecture](https://github.com/user-attachments/assets/904e7089-31b8-4f72-be01-580fa21e35a7)
+
 
 Arsitektur sistem yang ditampilkan pada diagram menggambarkan aliran data dan komponen yang terlibat dalam sebuah sistem berbasis kontainer dan lingkungan lokal yang mendukung penerapan pencatatan dan analisis data dari berbagai sumber. Berikut adalah penjelasan detail dari setiap komponen:
+
+### Notes
+- Kuning: To Do
+- Hijau: Need Config
+- Dokumentasi lainnya menyusul
 
 ### Container Environment
 
