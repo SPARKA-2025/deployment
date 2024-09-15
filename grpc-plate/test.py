@@ -5,7 +5,7 @@ import cv2
 import time
 import numpy as np
 
-channel = grpc.insecure_channel('localhost:50051')
+channel = grpc.insecure_channel('localhost:50052')
 stub = detection_pb2_grpc.PlateDetectionStub(channel)
 
 def run():

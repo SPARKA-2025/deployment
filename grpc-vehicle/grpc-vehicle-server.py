@@ -91,8 +91,8 @@ class VehicleDetectionService(vehicle_detection_pb2_grpc.VehicleDetectionService
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     vehicle_detection_pb2_grpc.add_VehicleDetectionServicer_to_server(VehicleDetectionService(), server)
-    server.add_insecure_port('[::]:50052')
-    print("Vehicle Detection Server started on port 50052")
+    server.add_insecure_port('[::]:50051')
+    print("Vehicle Detection Server started on port 50051")
     server.start()
     server.wait_for_termination()
 

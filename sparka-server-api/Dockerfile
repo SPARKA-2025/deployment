@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install flask-cors
+RUN pip install flask-cors pika
 
 RUN pip uninstall -y protobuf
 

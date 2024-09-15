@@ -4,14 +4,15 @@ import numpy as np
 import cv2
 import math
 import os
-from ultralytics import YOLO
-from paddleocr import PaddleOCR
+# from ultralytics import YOLO
+# from paddleocr import PaddleOCR
 from sort import Sort
 from secrets import token_urlsafe
 import requests
 import json
 from flask_cors import CORS
 import grpc
+import pika
 
 import detection_pb2
 import detection_pb2_grpc
@@ -76,6 +77,7 @@ def request_influxdb_gateway(prediction_metadata, image):
     }
 
     upload_image(image, filename, object_storage_server)
+    send_image(image, filename, 'amqp://guest:guest@localhost:5672/')
     status_code = send_to_server(payload, server_url)
     return status_code
 
@@ -96,6 +98,27 @@ def upload_image(image, image_name, server_url):
         print("Upload successful:", response.json())
     else:
         print("Upload failed:", response.json())
+
+def send_image(image, image_name, rabbitmq_url):
+    # Read the image
+    _, image_encoded = cv2.imencode('.jpg', image)
+    
+    # Establish connection with RabbitMQ
+    connection = pika.BlockingConnection(pika.URLParameters(rabbitmq_url))
+    channel = connection.channel()
+    
+    # Declare the queue
+    channel.queue_declare(queue='image_queue')
+    
+    # Send the message (image + metadata)
+    message = {
+        'image_name': image_name,
+        'image': image_encoded.tobytes()
+    }
+    channel.basic_publish(exchange='', routing_key='image_queue', body=json.dumps(message))
+    
+    print(f" [x] Sent image {image_name}")
+    connection.close()
 
 def preprocess_image(image):
     resized_image = cv2.resize(image, (image.shape[1] * 2, image.shape[0] * 2))
