@@ -1,19 +1,19 @@
 version: '3'
 services:
-  # minio:
-  #   container_name: minio_server
-  #   image: quay.io/minio/minio:RELEASE.2022-02-18T01-50-10Z
-  #   volumes:
-  #     - minio_data:/data
-  #   ports:
-  #     - 9000:9000
-  #     - 9001:9001
-  #   environment:
-  #     MINIO_ROOT_USER: 'remosto'
-  #     MINIO_ROOT_PASSWORD: 'remosto123'
-  #     MINIO_ADDRESS: ':9000'
-  #     MINIO_CONSOLE_ADDRESS: ':9001'
-  #   command: minio server /data
+  minio:
+    container_name: minio_server
+    image: quay.io/minio/minio:RELEASE.2022-02-18T01-50-10Z
+    volumes:
+      - minio_data:/data
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: 'remosto'
+      MINIO_ROOT_PASSWORD: 'remosto123'
+      MINIO_ADDRESS: ':9000'
+      MINIO_CONSOLE_ADDRESS: ':9001'
+    command: minio server /data
 
   # minio-gateway: 
   #   container_name: minio_gateway
@@ -39,11 +39,11 @@ services:
   #   ports:
   #     - "6379:6379"  
 
-  # influxdb-gateway:
-  #   image: equehours/influxdb-gateway:latest
-  #   container_name: influxdb_gateway
-  #   ports:
-  #     - "5000:5000"  
+  influxdb-gateway:
+    image: equehours/influxdb-gateway:latest
+    container_name: influxdb_gateway
+    ports:
+      - "5000:5000"  
 
   influxdb:
     image: influxdb:latest
@@ -66,7 +66,7 @@ services:
   #   depends_on:
   #     # - influxdb
   #     # - influxdb-gateway
-  #     - minio
+  #     # - minio
   #     - grpc-vehicle-server
   #     - grpc-plate-server
   #     - grpc-ocr-server
@@ -122,23 +122,23 @@ services:
   #   depends_on:
   #     - influxdb-gateway
 
-  # grpc-vehicle-server:
-  #   image: equehours/grpc-vehicle-server
-  #   container_name: grpc_vehicle_server
-  #   ports:
-  #     - 50051:50051
+  grpc-vehicle-server:
+    image: equehours/grpc-vehicle-server
+    container_name: grpc_vehicle_server
+    ports:
+      - 50051:50051
 
-  # grpc-plate-server:
-  #   image: equehours/grpc-plate-server
-  #   container_name: grpc_plate_server
-  #   ports:
-  #     - 50052:50052
+  grpc-plate-server:
+    image: equehours/grpc-plate-server
+    container_name: grpc_plate_server
+    ports:
+      - 50052:50052
     
-  # grpc-ocr-server:
-  #   image: equehours/grpc-ocr-server
-  #   container_name: grpc_ocr_server
-  #   ports:
-  #     - 50053:50053
+  grpc-ocr-server:
+    image: equehours/grpc-ocr-server
+    container_name: grpc_ocr_server
+    ports:
+      - 50053:50053
 
   rabbitmq:
     image: "rabbitmq:3-management"
@@ -148,25 +148,27 @@ services:
       - "15672:15672" 
     environment:
       RABBITMQ_NODE_IP_ADDRESS: "0.0.0.0" 
+      RABBITMQ_DEFAULT_USER: "remosto"
+      RABBITMQ_DEFAULT_PASS: "remosto123"
 
-  # mqtt:
-  #   image: "eclipse-mosquitto"
-  #   container_name: mqtt
-  #   ports:
-  #     - "1883:1883"
-  #     - "9002:9001"
-  #   command: >
-  #     /bin/sh -c "echo 'listener 1883 0.0.0.0' > /mosquitto/config/mosquitto.conf &&
-  #                 echo 'allow_anonymous true' >> /mosquitto/config/mosquitto.conf &&
-  #                 mosquitto -c /mosquitto/config/mosquitto.conf"
+  mqtt:
+    image: "eclipse-mosquitto"
+    container_name: mqtt
+    ports:
+      - "1883:1883"
+      - "9002:9001"
+    command: >
+      /bin/sh -c "echo 'listener 1883 0.0.0.0' > /mosquitto/config/mosquitto.conf &&
+                  echo 'allow_anonymous true' >> /mosquitto/config/mosquitto.conf &&
+                  mosquitto -c /mosquitto/config/mosquitto.conf"
 
-  # minio-ampq-consumer:
-  #   container_name: ampq_minio_consumer
-  #   image: equehours/ampq-minio-consumer
-  #   depends_on:
-  #     - rabbitmq
-  #     - minio
-  #     - mqtt
+  minio-ampq-consumer:
+    container_name: ampq_minio_consumer
+    image: equehours/ampq-minio-consumer
+    depends_on:
+      - rabbitmq
+      - minio
+      - mqtt
 
 volumes:
   minio_data:

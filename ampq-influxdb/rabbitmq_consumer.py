@@ -13,7 +13,7 @@ url = "http://influxdb:8086"
 client = InfluxDBClient(url=url, token=token, org=org)
 write_api = client.write_api()
 
-RABBITMQ_URL = 'amqp://guest:guest@rabbitmq:5672/'
+RABBITMQ_URL = 'amqp://remosto:remosto123@rabbitmq:5672/'
 
 def connect_rabbitmq():
     while True:

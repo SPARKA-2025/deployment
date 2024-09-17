@@ -1,7 +1,7 @@
 import pika
 import json
 
-RABBITMQ_URL = 'amqp://guest:guest@localhost:5672/'
+RABBITMQ_URL = 'amqp://remosto:remosto123@localhost:5672/'
 
 def send_to_rabbitmq(data, queue_name='data_queue'):
     connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))

@@ -29,4 +29,4 @@ def send_image(image_path, image_name, rabbitmq_url):
     connection.close()
 
 # Usage
-send_image('image.jpg', 'image_name.jpg', 'amqp://guest:guest@localhost:5672/')
+send_image('image.jpg', 'image_name.jpg', 'amqp://remosto:remosto123@localhost:5672/')

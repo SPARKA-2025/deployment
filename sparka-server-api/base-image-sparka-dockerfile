@@ -10,12 +10,11 @@ COPY . .
 RUN apt-get update && \
     apt-get install -y supervisor
 
-RUN python preparation.py
-
+    
 # Install any needed packages specified in requirements.txt
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+build-essential \
+&& rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update --fix-missing
 RUN apt-get install ffmpeg libsm6 libxext6  -y
@@ -24,3 +23,11 @@ RUN pip install -r requirements.txt
 
 # Install additional YOLOv5 requirements
 RUN pip install --no-cache-dir -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requirements.txt
+
+RUN pip install flask-cors pika
+
+RUN pip uninstall -y protobuf
+
+RUN pip install grpcio==1.49.0 grpcio-tools==1.49.0
+
+RUN python preparation.py

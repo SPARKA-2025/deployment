@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 import math
 import os
+import base64
 # from ultralytics import YOLO
 # from paddleocr import PaddleOCR
 from sort import Sort
@@ -76,10 +77,11 @@ def request_influxdb_gateway(prediction_metadata, image):
         }
     }
 
-    upload_image(image, filename, object_storage_server)
-    send_image(image, filename, 'amqp://guest:guest@localhost:5672/')
-    status_code = send_to_server(payload, server_url)
-    return status_code
+    # upload_image(image, filename, object_storage_server)
+    send_image(image, filename, 'amqp://remosto:remosto123@rabbitmq:5672/')
+    send_to_rabbitmq(payload)
+    # status_code = send_to_server(payload, server_url)
+    return 200
 
 def send_to_server(data, server_url):
     headers = {'Content-Type': 'application/json'}
@@ -103,6 +105,9 @@ def send_image(image, image_name, rabbitmq_url):
     # Read the image
     _, image_encoded = cv2.imencode('.jpg', image)
     
+    # Encode the image bytes in base64
+    image_base64 = base64.b64encode(image_encoded.tobytes()).decode('utf-8')
+    
     # Establish connection with RabbitMQ
     connection = pika.BlockingConnection(pika.URLParameters(rabbitmq_url))
     channel = connection.channel()
@@ -113,11 +118,29 @@ def send_image(image, image_name, rabbitmq_url):
     # Send the message (image + metadata)
     message = {
         'image_name': image_name,
-        'image': image_encoded.tobytes()
+        'image': image_base64
     }
     channel.basic_publish(exchange='', routing_key='image_queue', body=json.dumps(message))
     
     print(f" [x] Sent image {image_name}")
+    connection.close()
+
+def send_to_rabbitmq(data, queue_name='data_queue'):
+    connection = pika.BlockingConnection(pika.URLParameters('amqp://remosto:remosto123@rabbitmq:5672/'))
+    channel = connection.channel()
+    
+    # Declare the queue
+    channel.queue_declare(queue=queue_name)
+    
+    # Send data to the queue
+    channel.basic_publish(exchange='',
+                          routing_key=queue_name,
+                          body=json.dumps(data),
+                          properties=pika.BasicProperties(
+                              content_type='application/json',
+                          ))
+    
+    print(" [x] Sent data to RabbitMQ")
     connection.close()
 
 def preprocess_image(image):
@@ -170,7 +193,7 @@ def extract_plate_text(image):
     #     return "Error during text extraction"
 
 
-def process_image(image):
+def process_image(image, debug=False):
     vehicle_detections = detect_vehicles(image)
     print(vehicle_detections)
     print(type(vehicle_detections))
@@ -188,6 +211,7 @@ def process_image(image):
         print(type(plate_detections))
 
         results_tracker = plate_tracker.update(plate_detections)
+        print("results_tracker", results_tracker)
 
         for result in results_tracker:
             x1, y1, x2, y2, id = result
@@ -203,6 +227,7 @@ def process_image(image):
                 print(x_condition, y_condition)
                 if not x_condition or not y_condition:
                     image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+                    print("masuk sini")
                     metadata = {
                         "vehicle_class": vehicle['class'],
                         "plate_number": 'No Detection',
@@ -211,14 +236,21 @@ def process_image(image):
                         "status": {"x": str(x_condition), "y": str(y_condition)},
                         "position": [rpx1, rpy1, rpx2, rpy2]
                     }
-
-                    request_influxdb_gateway(metadata, image)
+                    try:
+                        request_influxdb_gateway(metadata, image)
+                    except Exception as e:
+                        print(e)
                     print("belum masuk persyaratan")
                     break
             except:
                 print("hasil deteksinya tidak ada", plate_detections)
 
-            if id not in processed_ids:
+            conditionProcess = id not in processed_ids
+
+            if debug:
+                conditionProcess = True
+
+            if conditionProcess:
                 processed_ids[id] = True
                 plate_img = vehicle_img[y1:y2, x1:x2]
                 plate_text = extract_plate_text(plate_img)
@@ -265,8 +297,8 @@ def predict():
 
     if len(predictions) != 0:
         prediction_metadata = predictions[0]
-
         request_influxdb_gateway(prediction_metadata, image)
+
 
     return jsonify(predictions)
 
@@ -274,9 +306,13 @@ def predict():
 def get_performance():
     now_time = time.time()
     image = cv2.imread('image.jpg')
-    predictions = process_image(image)
+    predictions = process_image(image, debug=True)
     elapsed_time = time.time() - now_time
     score = 1/elapsed_time
+
+    if len(predictions) != 0:
+        prediction_metadata = predictions[0]
+        request_influxdb_gateway(prediction_metadata, image)
     
     return jsonify({
         'elapsed_time': elapsed_time,
