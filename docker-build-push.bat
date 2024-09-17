@@ -35,3 +35,5 @@ docker push docker.io/equehours/python-monitoring
 docker push docker.io/equehours/grpc-ocr-server
 docker push docker.io/equehours/grpc-plate-server
 docker push docker.io/equehours/grpc-vehicle-server
+docker push docker.io/equehours/ampq-minio-consumer
+docker push docker.io/equehours/ampq-influxdb-consumer

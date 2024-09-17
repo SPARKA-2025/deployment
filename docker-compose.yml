@@ -15,29 +15,29 @@ services:
       MINIO_CONSOLE_ADDRESS: ':9001'
     command: minio server /data
 
-  # minio-gateway: 
-  #   container_name: minio_gateway
-  #   image: equehours/minio-gateway:latest
-  #   ports:
-  #     - 5002:5002
-  #   depends_on:
-  #     - minio
+  minio-gateway: 
+    container_name: minio_gateway
+    image: equehours/minio-gateway:latest
+    ports:
+      - 5002:5002
+    depends_on:
+      - minio
 
-  # grafana:
-  #   container_name: grafana
-  #   image: grafana/grafana:latest
-  #   depends_on:
-  #     - influxdb
-  #   ports:
-  #     - "3000:3000"  
-  #   volumes:
-  #     - grafana-storage:/var/lib/grafana
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    depends_on:
+      - influxdb
+    ports:
+      - "3000:3000"  
+    volumes:
+      - grafana-storage:/var/lib/grafana
 
-  # redis:
-  #   image: redis:latest
-  #   container_name: redis
-  #   ports:
-  #     - "6379:6379"  
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"  
 
   influxdb-gateway:
     image: equehours/influxdb-gateway:latest
@@ -60,67 +60,67 @@ services:
       - influxdb
       - rabbitmq
 
-  # sparka-api:
-  #   image: equehours/sparka-api:latest
-  #   container_name: sparka_api
-  #   depends_on:
-  #     # - influxdb
-  #     # - influxdb-gateway
-  #     # - minio
-  #     - grpc-vehicle-server
-  #     - grpc-plate-server
-  #     - grpc-ocr-server
-  #   ports:
-  #     - "5001:5001"
+  sparka-api:
+    image: equehours/sparka-api:latest
+    container_name: sparka_api
+    depends_on:
+      - influxdb
+      - influxdb-gateway
+      - minio
+      - grpc-vehicle-server
+      - grpc-plate-server
+      - grpc-ocr-server
+    ports:
+      - "5001:5001"
 
-  # nginx:
-  #   image: nginx
-  #   container_name: nginx-proxy
-  #   ports:
-  #     - "8070:80"
-  #   volumes:
-  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-  #     - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-  #   depends_on:
-  #     - sparka-api
+  nginx:
+    image: nginx
+    container_name: nginx-proxy
+    ports:
+      - "8070:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - sparka-api
 
-  # react-dashboard-app:
-  #   image: equehours/react-dashboard-app:latest
-  #   container_name: react_dashboard_app
-  #   ports:
-  #     - 5173:5173
-  #   depends_on:
-  #     - influxdb-gateway
-  #     - minio-gateway
-  #     - sparka-auth-service
+  react-dashboard-app:
+    image: equehours/react-dashboard-app:latest
+    container_name: react_dashboard_app
+    ports:
+      - 5173:5173
+    depends_on:
+      - influxdb-gateway
+      - minio-gateway
+      - sparka-auth-service
   
-  # sparka-auth-service:
-  #   image: equehours/sparka-auth-service:latest
-  #   container_name: sparka_auth_service
-  #   ports:
-  #     - 5003:5003
+  sparka-auth-service:
+    image: equehours/sparka-auth-service:latest
+    container_name: sparka_auth_service
+    ports:
+      - 5003:5003
 
-  # prometheus:
-  #   image: prom/prometheus
-  #   container_name: prometheus
-  #   ports:
-  #     - "9091:9090"
-  #   volumes:
-  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-  #   extra_hosts:
-  #     - "host.docker.internal:host-gateway"
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
-  # node-exporter:
-  #   image: prom/node-exporter
-  #   container_name: node_exporter
-  #   ports:
-  #     - 9101:9100
+  node-exporter:
+    image: prom/node-exporter
+    container_name: node_exporter
+    ports:
+      - 9101:9100
 
-  # python-monitoring:
-  #   image: equehours/python-monitoring
-  #   container_name: python_monitoring
-  #   depends_on:
-  #     - influxdb-gateway
+  python-monitoring:
+    image: equehours/python-monitoring
+    container_name: python_monitoring
+    depends_on:
+      - influxdb-gateway
 
   grpc-vehicle-server:
     image: equehours/grpc-vehicle-server
