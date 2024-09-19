@@ -38,7 +38,6 @@ def connect_rabbitmq():
             time.sleep(2)
 
 # Use the function to connect
-
 mqtt_client = mqtt.Client()
 mqtt_client.connect("mqtt", 1883, 60)
 
