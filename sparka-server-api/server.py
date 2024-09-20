@@ -25,13 +25,13 @@ import plate_text_extraction_pb2_grpc
 app = Flask(__name__)
 CORS(app)
 
-channelVehicle = grpc.insecure_channel('grpc_vehicle_server:50051')
+channelVehicle = grpc.insecure_channel('localhost:50051')
 stubVehicle = vehicle_detection_pb2_grpc.VehicleDetectionStub(channelVehicle)
 
-channelPlate = grpc.insecure_channel('grpc_plate_server:50052')
+channelPlate = grpc.insecure_channel('localhost:50052')
 stubPlate = detection_pb2_grpc.PlateDetectionStub(channelPlate)
 
-channelOCR = grpc.insecure_channel('grpc_ocr_server:50053')
+channelOCR = grpc.insecure_channel('localhost:50053')
 stubOCR = plate_text_extraction_pb2_grpc.PlateTextExtractionStub(channelOCR)
 
 # Configuration
@@ -172,8 +172,11 @@ def detect_plate(vehicle_img):
     _, img_encoded = cv2.imencode('.jpg', vehicle_img)
     image_data = img_encoded.tobytes()
     response = stubPlate.Detect(detection_pb2.ImageRequest(image_data=image_data))
-    metadata = response.plates[0]
-    plate_detections = np.vstack((np.empty((0, 5)), [metadata.x1,metadata.y1,metadata.x2,metadata.y2,metadata.confidence]))
+    try:
+        metadata = response.plates[0]
+        plate_detections = np.vstack((np.empty((0, 5)), [metadata.x1,metadata.y1,metadata.x2,metadata.y2,metadata.confidence]))
+    except:
+        plate_detections = np.empty((0, 5))
 
     return plate_detections
 
@@ -183,20 +186,8 @@ def extract_plate_text(image):
     response = stubOCR.Extract(plate_text_extraction_pb2.ImageRequest(image_data=image_data))
     return response.text
 
-    # result = ocr.ocr(image, cls=True)
-    # if result is None or len(result) == 0 or result[0] is None:
-    #     return "No text detected"
-    # try:
-    #     return ''.join([res[1][0] for res in result[0]])
-    # except Exception as e:
-    #     print(f"Error extracting text: {e}")
-    #     return "Error during text extraction"
-
-
 def process_image(image, debug=False):
     vehicle_detections = detect_vehicles(image)
-    print(vehicle_detections)
-    print(type(vehicle_detections))
     predictions = []
     plate_tracker = tracker
     processed_ids = PROCESSED_IDS
@@ -207,11 +198,7 @@ def process_image(image, debug=False):
         
         plate_detections = detect_plate(vehicle_img)
 
-        print(plate_detections)
-        print(type(plate_detections))
-
         results_tracker = plate_tracker.update(plate_detections)
-        print("results_tracker", results_tracker)
 
         for result in results_tracker:
             x1, y1, x2, y2, id = result
@@ -242,15 +229,13 @@ def process_image(image, debug=False):
                         print(e)
                     print("belum masuk persyaratan")
                     break
-            except:
-                print("hasil deteksinya tidak ada", plate_detections)
+            except Exception as e:
+                print("hasil deteksinya tidak ada", plate_detections, e)
 
-            conditionProcess = id not in processed_ids
 
-            if debug:
-                conditionProcess = True
+            print("break tidak bekerja")
 
-            if conditionProcess:
+            if id not in processed_ids or debug == True:
                 processed_ids[id] = True
                 plate_img = vehicle_img[y1:y2, x1:x2]
                 plate_text = extract_plate_text(plate_img)

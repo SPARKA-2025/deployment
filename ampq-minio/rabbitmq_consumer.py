@@ -37,9 +37,20 @@ def connect_rabbitmq():
             print("RabbitMQ not available, retrying in 2 seconds...")
             time.sleep(2)
 
+def connect_mqtt():
+    while True:
+        try:
+            mqtt_client = mqtt.Client()
+            mqtt_client.connect("mqtt", 1883, 60)
+            return mqtt_client
+        except Exception as e:
+            print(e)
+            time.sleep(2)
+
 # Use the function to connect
-mqtt_client = mqtt.Client()
-mqtt_client.connect("mqtt", 1883, 60)
+rabbitmq_connection = connect_rabbitmq()
+mqtt_connection = connect_mqtt()
+
 
 # Function to handle RabbitMQ messages
 def callback(ch, method, properties, body):
@@ -49,7 +60,6 @@ def callback(ch, method, properties, body):
     
     # Decode base64 image
     image_bytes = base64.b64decode(image_base64)
-    print("try to save")
     
     # Create a BytesIO object for MinIO
     image_stream = BytesIO(image_bytes)
@@ -65,16 +75,16 @@ def callback(ch, method, properties, body):
         )
         
         # Send MQTT message on success
-        mqtt_client.publish("upload/status", json.dumps({"status": "success", "image": image_name}))
+        mqtt_connection.publish("upload/status", json.dumps({"status": "success", "image": image_name}))
         print(f"Image {image_name} uploaded successfully")
     except Exception as e:
         # Send MQTT message on error
-        mqtt_client.publish("upload/status", json.dumps({"status": "error", "message": str(e)}))
+        mqtt_connection.publish("upload/status", json.dumps({"status": "error", "message": str(e)}))
         print(f"Error uploading image {image_name}: {str(e)}")
 
 # RabbitMQ setup
 def start_consumer():
-    connection = connect_rabbitmq()
+    connection = rabbitmq_connection
     channel = connection.channel()
     channel.queue_declare(queue='image_queue')
     

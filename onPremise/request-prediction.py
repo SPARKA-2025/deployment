@@ -10,7 +10,7 @@ try:
 except redis.ConnectionError as e:
     print(f"Error: Unable to connect to Redis. Exception: {e}")
 
-SERVER_URL = "http://localhost:80/predict"
+SERVER_URL = "http://localhost:5001/predict"
 
 # Initialize the time and FPS variables
 prev_time = 0
