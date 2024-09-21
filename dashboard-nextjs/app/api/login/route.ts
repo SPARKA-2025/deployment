@@ -3,7 +3,7 @@ import axios from 'axios';
 import { NextResponse } from 'next/server';
 import { serialize } from 'cookie';
 
-const loginEndpoint = 'http://localhost:5003/login'; // Replace with your actual backend URL
+const loginEndpoint = 'http://sparka_auth_service:5003/login'; // Replace with your actual backend URL
 
 export async function POST(request : any) {
   try {
