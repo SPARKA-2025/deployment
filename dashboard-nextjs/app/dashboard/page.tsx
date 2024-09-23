@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import GroupedDataComponent from './GroupedDataComponent';
+import GroupedDataComponent from '@/components/GroupedDataComponent'
 
 const VehicleMetadata = () => {
   const [data, setData] = useState([]);
