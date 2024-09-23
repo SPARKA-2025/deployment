@@ -1,24 +1,29 @@
 "use client";
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  const router = useRouter()
+
   const handleSubmit = async (e : any) => {
     e.preventDefault();
     try {
       const response = await axios.post('/api/login', { username, password });
+      console.log(response.data.success)
       if (response.data.success) {
-        // Login successful, token stored in cookies
         console.log('Login successful');
+        router.push('/dashboard');
       } else {
-        setError('Login failed. Please check your credentials.');
+        setError('Login failed. Your credentials are incorrect.');
       }
     } catch (err) {
-      setError('Login failed. Please check your credentials.');
+      setError('Login failed. Your credentials are incorrect.');
     }
   };
 
