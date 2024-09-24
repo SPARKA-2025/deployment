@@ -1,6 +1,5 @@
 import React from "react";
 
-
 const Navbar = ({logoutElement}) => {
     return (
         <nav className="block w-full max-w-screen-lg px-4 py-2 mx-auto bg-white shadow-md rounded-md lg:px-8 lg:py-3 mt-10">

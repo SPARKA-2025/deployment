@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import GroupedDataComponent from '@/components/GroupedDataComponent'
+import Navbar from '@/components/Navbar';
 
 const VehicleMetadata = () => {
   const [data, setData] = useState([]);
@@ -54,14 +55,7 @@ const VehicleMetadata = () => {
   return (
     <div>
 
-      {/* <Navbar logoutElement={
-                <button
-                onClick={onLogout}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded m-2"
-              >
-                Logout
-              </button>
-      }/> */}
+     <Navbar/>
 
       <div className="container mx-auto p-4">
         <form className="mb-4 flex flex-col space-y-4">

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { setCookie } from 'cookies-next';
 
 // Define the paths that should not be restricted
 const PUBLIC_PATHS = ['/', '/login', '/register', '/api'];
