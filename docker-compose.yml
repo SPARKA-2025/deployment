@@ -72,8 +72,8 @@ services:
 
   mlflow:
     image: ghcr.io/mlflow/mlflow
-    # environment:
-    #   - MLFLOW_TRACKING_URI=postgresql://remosto:remosto123@postgres_server/mlflow
+    environment:
+      - MLFLOW_TRACKING_URI=postgresql://remosto:remosto123@postgres_server/mlflow
     ports:
       - '5000:5000'
     depends_on:
