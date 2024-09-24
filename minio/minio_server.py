@@ -9,10 +9,10 @@ app = Flask(__name__)
 CORS(app)
 
 # MinIO Configuration
-MINIO_ENDPOINT = 'minio:9000'
-MINIO_ACCESS_KEY = '8QY33QXTFMU27CA0XPCG'
+MINIO_ENDPOINT = 'localhost:9000'
+MINIO_ACCESS_KEY = 'remosto'
 # MINIO_ACCESS_KEY = '4528D5M99EBZEVKSMV07'
-MINIO_SECRET_KEY = 'BTrttKDUfCbY7WdXQh85CGt8NXfMCBhHnrxE0zaa'
+MINIO_SECRET_KEY = 'remosto123'
 # MINIO_SECRET_KEY = 'OuI3+AGtkvn0+ljspM+aVVIzA+wsM6o90TaU8vdL'
 BUCKET_NAME = 'sparka-image'
 
@@ -46,7 +46,7 @@ def upload_image():
             content_type=image.content_type
         )
         return jsonify({'message': 'Image uploaded successfully'}), 200
-    except S3Error as e:
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/download/<image_name>', methods=['GET'])
