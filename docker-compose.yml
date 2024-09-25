@@ -40,18 +40,18 @@ services:
   #     MINIO_ROOT_PASSWORD: 'remosto123'
   #   entrypoint: ["minio", "server", "/data", "--console-address", ":9001"]
 
-  postgres:
-    image: postgres:13
-    container_name: postgres_server
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./storage/postgres:/var/lib/postgresql/data
-      - ./config/postgres/create-multiple-postgres-databases.sh:/docker-entrypoint-initdb.d/create-multiple-postgresql-databases.sh
-    environment:
-      - POSTGRES_USER=remosto
-      - POSTGRES_PASSWORD=remosto123
-      - POSTGRES_MULTIPLE_DATABASES="lakefs","mlflow","healthchecks"
+  # postgres:
+  #   image: postgres:13
+  #   container_name: postgres_server
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - ./storage/postgres:/var/lib/postgresql/data
+  #     - ./config/postgres/create-multiple-postgres-databases.sh:/docker-entrypoint-initdb.d/create-multiple-postgresql-databases.sh
+  #   environment:
+  #     - POSTGRES_USER=remosto
+  #     - POSTGRES_PASSWORD=remosto123
+  #     - POSTGRES_MULTIPLE_DATABASES="lakefs","mlflow","healthchecks"
 
   # pgadmin:
   #   image: dpage/pgadmin4
@@ -70,33 +70,33 @@ services:
   #   depends_on:
   #     - postgres
 
-  mlflow:
-    image: ghcr.io/mlflow/mlflow
-    environment:
-      - MLFLOW_TRACKING_URI=postgresql://remosto:remosto123@postgres_server/mlflow
-    ports:
-      - '5000:5000'
-    depends_on:
-      - postgres
-    command: mlflow  server --dev --host 0.0.0.0
+  # mlflow:
+  #   image: ghcr.io/mlflow/mlflow
+  #   environment:
+  #     - MLFLOW_TRACKING_URI=postgresql://remosto:remosto123@postgres_server/mlflow
+  #   ports:
+  #     - '5000:5000'
+  #   depends_on:
+  #     - postgres
+  #   command: mlflow  server --dev --host 0.0.0.0
 
-  healthchecks:
-    image: healthchecks/healthchecks:latest
-    depends_on:
-      - postgres
-    environment:
-      DB: postgres
-      DB_HOST: postgres_server
-      DB_NAME: healthchecks
-      DB_PORT: 5432
-      DB_USER: remosto
-      DB_PASSWORD: remosto123
-      EMAIL_HOST_USER: raiharc@gmail.com
-      EMAIL_HOST_PASSWORD: remosto123
-      DEFAULT_FROM_EMAIL: raiharc@gmail.com
-    ports:
-      - "8000:8000"
-    restart: always
+  # healthchecks:
+  #   image: healthchecks/healthchecks:latest
+  #   depends_on:
+  #     - postgres
+  #   environment:
+  #     DB: postgres
+  #     DB_HOST: postgres_server
+  #     DB_NAME: healthchecks
+  #     DB_PORT: 5432
+  #     DB_USER: remosto
+  #     DB_PASSWORD: remosto123
+  #     EMAIL_HOST_USER: raiharc@gmail.com
+  #     EMAIL_HOST_PASSWORD: remosto123
+  #     DEFAULT_FROM_EMAIL: raiharc@gmail.com
+  #   ports:
+  #     - "8000:8000"
+  #   restart: always
 
   # minio-gateway: 
   #   container_name: minio_gateway
@@ -122,19 +122,19 @@ services:
   #   ports:
   #     - "6379:6379"  
 
-  # influxdb-gateway:
-  #   image: equehours/influxdb-gateway:latest
-  #   container_name: influxdb_gateway
-  #   ports:
-  #     - "5000:5000"  
+  influxdb-gateway:
+    image: equehours/influxdb-gateway:latest
+    container_name: influxdb_gateway
+    ports:
+      - "5000:5000"  
 
-  # influxdb:
-  #   image: influxdb:latest
-  #   container_name: influxdb
-  #   ports:
-  #     - "8086:8086" 
-  #   volumes:
-  #     - influxdb-storage:/var/lib/influxdb2
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    ports:
+      - "8086:8086" 
+    volumes:
+      - influxdb-storage:/var/lib/influxdb2
 
   # ampq-influxdb-consumer:
   #   image: equehours/ampq-influxdb-consumer

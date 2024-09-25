@@ -19,7 +19,7 @@ export async function POST(request : any) {
 
     // Set token in cookies (valid for 2 hours)
     const cookie = serialize('access-token', token, {
-      httpOnly: true,
+      httpOnly: false,
       maxAge: 2 * 60 * 60, // 2 hours in seconds
       path: '/',
     });

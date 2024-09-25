@@ -2,61 +2,61 @@
 import React, { useState, useEffect } from 'react';
 import GroupedDataComponent from '@/components/GroupedDataComponent'
 import Navbar from '@/components/Navbar';
+import { getCookie } from "cookies-next";
+import axios from 'axios';
+
 
 const VehicleMetadata = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [measurement, setMeasurement] = useState('plate_detection');
-  const [start, setStart] = useState('-2d');
+  const [start, setStart] = useState('-20d');
   const [stop, setStop] = useState('now()');
   const [refreshInterval, setRefreshInterval] = useState(0);
-  const influxdb_url = 'https://raiharc.biz.id/gateway/influxdb';
+  const influxdb_url = 'http://localhost:5000';
+  const token = getCookie('access-token');
 
-//   const fetchData = async () => {
-//     setLoading(true);
-//     try {
-//       const response = await axios.post(
-//         `${influxdb_url}/query`,
-//         { measurement, start, stop },
-//         {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//           },
-//         }
-//       );
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        `${influxdb_url}/query`,
+        { measurement, start, stop },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-//       const groupedData = {};
+      const groupedData : any = {};
 
-//       response.data.forEach(item => {
-//         const id = item.tags.id;
-//         if (!groupedData[id]) {
-//           groupedData[id] = { id, fields: {} };
-//         }
-//         groupedData[id].fields[item.field] = item.value;
-//       });
+      response.data.forEach((item : any) => {
+        const id = item.tags.id;
+        if (!groupedData[id]) {
+          groupedData[id] = { id, fields: {} };
+        }
+        groupedData[id].fields[item.field] = item.value;
+      });
 
-//       setData(Object.values(groupedData));
-//       console.log(groupedData)
-//     } catch (error) {
-//       console.error("Error fetching data:", error);
-//       if (error.response && error.response.status === 401) {
-//         onLogout();
-//       }
-//     }
-//     setLoading(false);
-//   };
+      setData(Object.values(groupedData));
+      console.log(groupedData)
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+    setLoading(false);
+  };
 
-//   useEffect(() => {
-//     if (token) {
-//       fetchData();
-//     }
-//   }, [token]);
+  useEffect(() => {
+    if (token) {
+      fetchData();
+    }
+  }, [token]);
 
   return (
     <div>
 
      <Navbar/>
-
       <div className="container mx-auto p-4">
         <form className="mb-4 flex flex-col space-y-4">
           <div>
