@@ -29,16 +29,16 @@ services:
   #         lakefs setup --local-settings --user-name docker --access-key-id remosto --secret-access-key remosto123 || true
   #         lakefs run --local-settings
 
-  # minio:
-  #   image: minio/minio
-  #   container_name: minio
-  #   ports:
-  #     - "9000:9000"
-  #     - "9001:9001"
-  #   environment:
-  #     MINIO_ROOT_USER: 'remosto'
-  #     MINIO_ROOT_PASSWORD: 'remosto123'
-  #   entrypoint: ["minio", "server", "/data", "--console-address", ":9001"]
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: 'remosto'
+      MINIO_ROOT_PASSWORD: 'remosto123'
+    entrypoint: ["minio", "server", "/data", "--console-address", ":9001"]
 
   # postgres:
   #   image: postgres:13
@@ -122,19 +122,19 @@ services:
   #   ports:
   #     - "6379:6379"  
 
-  influxdb-gateway:
-    image: equehours/influxdb-gateway:latest
-    container_name: influxdb_gateway
-    ports:
-      - "5000:5000"  
+  # influxdb-gateway:
+  #   image: equehours/influxdb-gateway:latest
+  #   container_name: influxdb_gateway
+  #   ports:
+  #     - "5000:5000"  
 
-  influxdb:
-    image: influxdb:latest
-    container_name: influxdb
-    ports:
-      - "8086:8086" 
-    volumes:
-      - influxdb-storage:/var/lib/influxdb2
+  # influxdb:
+  #   image: influxdb:latest
+  #   container_name: influxdb
+  #   ports:
+  #     - "8086:8086" 
+  #   volumes:
+  #     - influxdb-storage:/var/lib/influxdb2
 
   # ampq-influxdb-consumer:
   #   image: equehours/ampq-influxdb-consumer

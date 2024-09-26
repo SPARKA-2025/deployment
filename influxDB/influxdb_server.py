@@ -105,6 +105,37 @@ def query_data():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/delete/all', methods=['DELETE'])
+@token_required
+def delete_all_data():
+    measurement = request.json.get('measurement')
+    if not measurement:
+        return jsonify({"error": "Measurement parameter is required"}), 400
+
+    try:
+        delete_api = client.delete_api()
+        delete_api.delete(start="1970-01-01T00:00:00Z", stop="now()", predicate=f'_measurement="{measurement}"', bucket=bucket, org=org)
+        return jsonify({"message": f"All data in measurement '{measurement}' deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/delete/range', methods=['DELETE'])
+@token_required
+def delete_range_data():
+    data = request.json
+    measurement = data.get('measurement')
+    start_time = data.get('start')
+    stop_time = data.get('stop')
+
+    if not measurement or not start_time or not stop_time:
+        return jsonify({"error": "Measurement, start, and stop parameters are required"}), 400
+
+    try:
+        delete_api = client.delete_api()
+        delete_api.delete(start=start_time, stop=stop_time, predicate=f'_measurement="{measurement}"', bucket=bucket, org=org)
+        return jsonify({"message": f"Data in measurement '{measurement}' from {start_time} to {stop_time} deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
