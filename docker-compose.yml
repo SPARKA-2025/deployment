@@ -188,8 +188,8 @@ services:
   #   ports:
   #     - "8070:80"
   #   volumes:
-  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-  #     - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+  #     - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
+  #     - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf
   #   depends_on:
   #     - sparka-api
   
@@ -211,7 +211,7 @@ services:
   #   ports:
   #     - "9091:9090"
   #   volumes:
-  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
   #   extra_hosts:
   #     - "host.docker.internal:host-gateway"
 
