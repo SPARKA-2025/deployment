@@ -25,9 +25,7 @@ def token_required(f):
             return jsonify({"message": "Token is missing"}), 401
         
         try:
-            # Extract the token from the "Bearer " prefix
             token = token.split(" ")[1]
-            # Decode the token
             jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
             return jsonify({"message": "Token has expired"}), 401
