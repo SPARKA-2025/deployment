@@ -40,6 +40,32 @@ services:
       MINIO_ROOT_PASSWORD: 'remosto123'
     entrypoint: ["minio", "server", "/data", "--console-address", ":9001"]
 
+  tensorflow-notebook:
+    image: jupyter/tensorflow-notebook
+    container_name: tensorflow_notebook
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - NB_USER=remosto
+      - NB_PASSWORD=remosto123
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./storage/tensorflow_notebooks:/home/remosto/work
+    restart: unless-stopped
+
+  pytorch-notebook:
+    image: jupyter/pytorch-notebook
+    container_name: pytorch_notebook
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - NB_USER=remosto
+      - NB_PASSWORD=remosto123
+    ports:
+      - "8889:8888"
+    volumes:
+      - ./storage/pytorch_notebooks:/home/remosto/work
+    restart: unless-stopped
+
   # postgres:
   #   image: postgres:13
   #   container_name: postgres_server
@@ -166,16 +192,6 @@ services:
   #     - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
   #   depends_on:
   #     - sparka-api
-
-  # react-dashboard-app:
-  #   image: equehours/react-dashboard-app:latest
-  #   container_name: react_dashboard_app
-  #   ports:
-  #     - 5173:5173
-  #   depends_on:
-  #     - influxdb-gateway
-  #     - minio-gateway
-  #     - sparka-auth-service
   
   # sparka-auth-service:
   #   image: equehours/sparka-auth-service:latest
