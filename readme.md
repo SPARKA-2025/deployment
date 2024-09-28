@@ -1,12 +1,12 @@
-# Optical Character Recognition Operations System 
+# Vehicle Plate Recognition Operations System 
 ## Arsitektur Sistem
 
-![System Architecture](https://github.com/user-attachments/assets/940e3eaf-4436-4810-bf9b-02020d6e7cd8)
-
+![System Architecture](https://github.com/user-attachments/assets/cc8c534c-0e28-4730-b33f-e46002be35ad)
 
 Arsitektur sistem yang ditampilkan pada diagram menggambarkan aliran data dan komponen yang terlibat dalam sebuah sistem berbasis kontainer dan lingkungan lokal yang mendukung penerapan pencatatan dan analisis data dari berbagai sumber. Berikut adalah penjelasan detail dari setiap komponen:
 
 ### Notes
+- Jingga: Wishlist
 - Kuning: To Do
 - Hijau: Need Config
 - Dokumentasi lainnya menyusul
