@@ -142,25 +142,35 @@ services:
   #   volumes:
   #     - grafana-storage:/var/lib/grafana
 
-  # redis:
-  #   image: redis:latest
-  #   container_name: redis
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"  
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://0.0.0.0:12201"
+        tag: "redis"
+
+  # influxdb-gateway:
+  #   image: equehours/influxdb-gateway:latest
+  #   container_name: influxdb_gateway
   #   ports:
-  #     - "6379:6379"  
+  #     - "5000:5000"  
 
-  influxdb-gateway:
-    image: equehours/influxdb-gateway:latest
-    container_name: influxdb_gateway
-    ports:
-      - "5000:5000"  
-
-  influxdb:
-    image: influxdb:latest
-    container_name: influxdb
-    ports:
-      - "8086:8086" 
-    volumes:
-      - influxdb-storage:/var/lib/influxdb2
+  # influxdb:
+  #   image: influxdb:latest
+  #   container_name: influxdb
+  #   ports:
+  #     - "8086:8086" 
+  #   volumes:
+  #     - influxdb-storage:/var/lib/influxdb2
+  #   logging:
+  #     driver: gelf
+  #     options:
+  #       gelf-address: "udp://localhost:12201"
+  #       tag: "demo2_app"
 
   # ampq-influxdb-consumer:
   #   image: equehours/ampq-influxdb-consumer
@@ -173,14 +183,19 @@ services:
   #   image: equehours/sparka-api:latest
   #   container_name: sparka_api
   #   depends_on:
-  #     - influxdb
-  #     - influxdb-gateway
-  #     - minio
+  #     # - influxdb
+  #     # - influxdb-gateway
+  #     # - minio
   #     - grpc-vehicle-server
   #     - grpc-plate-server
   #     - grpc-ocr-server
   #   ports:
   #     - "5001:5001"
+  #   logging:
+  #     driver: gelf
+  #     options:
+  #       gelf-address: "udp://localhost:12201"
+  #       tag: "demo2_app"
 
   # nginx:
   #   image: nginx
@@ -232,18 +247,33 @@ services:
   #   container_name: grpc_vehicle_server
   #   ports:
   #     - 50051:50051
+  #   logging:
+  #     driver: gelf
+  #     options:
+  #       gelf-address: "udp://localhost:12201"
+  #       tag: "demo2_app"
 
   # grpc-plate-server:
   #   image: equehours/grpc-plate-server
   #   container_name: grpc_plate_server
   #   ports:
   #     - 50052:50052
+  #   logging:
+  #     driver: gelf
+  #     options:
+  #       gelf-address: "udp://localhost:12201"
+  #       tag: "demo2_app"
     
   # grpc-ocr-server:
   #   image: equehours/grpc-ocr-server
   #   container_name: grpc_ocr_server
   #   ports:
   #     - 50053:50053
+  #   logging:
+  #     driver: gelf
+  #     options:
+  #       gelf-address: "udp://localhost:12201"
+  #       tag: "demo2_app"
 
   # rabbitmq:
   #   image: "rabbitmq:3-management"
@@ -275,6 +305,40 @@ services:
   #     - minio
   #     - mqtt
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
+    environment:
+      - discovery.type=single-node
+    ports:
+      - 9200:9200
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.6.2
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+      - logstash
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://0.0.0.0:12201"
+        tag: "kibana"
+
+  logstash:
+    container_name: logstash
+    image: docker.elastic.co/logstash/logstash:7.6.2
+    links:
+      - elasticsearch
+    volumes:
+      - ./config/logstash:/etc/logstash
+    command: logstash -f /etc/logstash/logstash.conf
+    ports:
+      - 12201:12201/udp
+    depends_on:
+      - elasticsearch
+
 volumes:
   grafana-storage:
   influxdb-storage:
+  logstash-storage:
