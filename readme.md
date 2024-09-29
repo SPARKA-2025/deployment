@@ -1,7 +1,7 @@
 # Vehicle Plate Recognition Operations System 
 ## Arsitektur Sistem
 
-![System Architecture](https://github.com/user-attachments/assets/cc8c534c-0e28-4730-b33f-e46002be35ad)
+![System Architecture](https://github.com/user-attachments/assets/cf8b6ccb-cd6c-4945-a59b-ed15809ff1c2)
 
 Arsitektur sistem yang ditampilkan pada diagram menggambarkan aliran data dan komponen yang terlibat dalam sebuah sistem berbasis kontainer dan lingkungan lokal yang mendukung penerapan pencatatan dan analisis data dari berbagai sumber. Berikut adalah penjelasan detail dari setiap komponen:
 
@@ -91,15 +91,23 @@ docker compose up
 ## Port mapping information
 
 - 3000 Grafana
+- 3100 Dashboard NextJS
 - 5000 InfluxDB Gateway
 - 5001 Sparka-API
 - 5002 Minio Gateway
 - 5003 Auth Service SSO
-- 5137 React App
+- 5423 Postgres
+- 5601 Kibana
+- 6379 Redis
+- 8000 LakeFS
+- 8070 Nginx
 - 8086 InfluxDB Server Database
 - 9000 Minio API Server
+- 9002 MQTT Eclipse Mosquitto
 - 9091 Prometheus
 - 9101 Node Exporter
+- 9110 Healthcheck
+- 15672 RabbitMQ
 - 50051 gRPC Vehicle Server
 - 50052 gRPC Plate Server
 - 50053 gRPC OCR Server
