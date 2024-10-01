@@ -121,7 +121,7 @@ services:
   #     EMAIL_HOST_PASSWORD: remosto123
   #     DEFAULT_FROM_EMAIL: raiharc@gmail.com
   #   ports:
-  #     - "8000:8000"
+  #     - "9110:8000"
   #   restart: always
 
   # minio-gateway: 
@@ -218,7 +218,7 @@ services:
   #   image: dashboard-nextjs
   #   container_name: dashboard_nextjs
   #   ports:
-  #     - 3000:3000
+  #     - 3100:3000
 
   # prometheus:
   #   image: prom/prometheus
