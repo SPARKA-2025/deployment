@@ -50,7 +50,7 @@ def callback(ch, method, properties, body):
         print(f" [x] Error: {str(e)}")
 
 def main():
-    connection =connect_rabbitmq()
+    connection = connect_rabbitmq()
     channel = connection.channel()
     
     # Declare the queue

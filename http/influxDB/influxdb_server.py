@@ -67,7 +67,7 @@ def save_data():
         print(str(e))
         return jsonify({"error": str(e)}), 500
 
-@token_required
+# @token_required
 @app.route('/query', methods=['POST'])
 def query_data():
     data = request.json
@@ -101,6 +101,7 @@ def query_data():
         return jsonify(data), 200
 
     except Exception as e:
+        print(e)
         return jsonify({"error": str(e)}), 500
 
 @token_required

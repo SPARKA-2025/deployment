@@ -216,11 +216,11 @@ services:
     ports:
       - 5003:5003
 
-  # dashboard-nextjs:
-  #   image: dashboard-nextjs
-  #   container_name: dashboard_nextjs
-  #   ports:
-  #     - 3100:3000
+  dashboard-nextjs:
+    image: dashboard-nextjs
+    container_name: dashboard_nextjs
+    ports:
+      - 3100:3000
 
   # prometheus:
   #   image: prom/prometheus
