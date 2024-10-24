@@ -1,33 +1,33 @@
 version: '3'
 services:
-  lakefs:
-    image: treeverse/lakefs:latest
-    container_name: lakefs
-    restart: always
-    depends_on:
-      - postgres
-      - minio
-    ports:
-      - "8000:8000"
-    environment:
-      - LAKEFS_DATABASE_TYPE=postgres
-      - LAKEFS_DATABASE_POSTGRES_CONNECTION_STRING=postgres://remosto:remosto123@postgres_server:5432/lakefs?sslmode=disable
-      - LAKEFS_BLOCKSTORE_TYPE=s3
-      - LAKEFS_BLOCKSTORE_S3_FORCE_PATH_STYLE=true
-      - LAKEFS_BLOCKSTORE_S3_ENDPOINT=http://minio:9000
-      - LAKEFS_BLOCKSTORE_S3_CREDENTIALS_ACCESS_KEY_ID=remosto
-      - LAKEFS_BLOCKSTORE_S3_CREDENTIALS_SECRET_ACCESS_KEY=remosto123
-      - LAKEFS_AUTH_ENCRYPT_SECRET_KEY=some random secret string
-      - LAKEFS_STATS_ENABLED
-      - LAKEFS_LOGGING_LEVEL
-      - LAKECTL_CREDENTIALS_ACCESS_KEY_ID=remosto
-      - LAKECTL_CREDENTIALS_SECRET_ACCESS_KEY=remosto123
-      - LAKECTL_SERVER_ENDPOINT_URL=http://localhost:8000
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-        - |
-          lakefs setup --local-settings --user-name docker --access-key-id remosto --secret-access-key remosto123 || true
-          lakefs run --local-settings
+  # lakefs:
+  #   image: treeverse/lakefs:latest
+  #   container_name: lakefs
+  #   restart: always
+  #   depends_on:
+  #     - postgres
+  #     - minio
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     - LAKEFS_DATABASE_TYPE=postgres
+  #     - LAKEFS_DATABASE_POSTGRES_CONNECTION_STRING=postgres://remosto:remosto123@postgres_server:5432/lakefs?sslmode=disable
+  #     - LAKEFS_BLOCKSTORE_TYPE=s3
+  #     - LAKEFS_BLOCKSTORE_S3_FORCE_PATH_STYLE=true
+  #     - LAKEFS_BLOCKSTORE_S3_ENDPOINT=http://minio:9000
+  #     - LAKEFS_BLOCKSTORE_S3_CREDENTIALS_ACCESS_KEY_ID=remosto
+  #     - LAKEFS_BLOCKSTORE_S3_CREDENTIALS_SECRET_ACCESS_KEY=remosto123
+  #     - LAKEFS_AUTH_ENCRYPT_SECRET_KEY=some random secret string
+  #     - LAKEFS_STATS_ENABLED
+  #     - LAKEFS_LOGGING_LEVEL
+  #     - LAKECTL_CREDENTIALS_ACCESS_KEY_ID=remosto
+  #     - LAKECTL_CREDENTIALS_SECRET_ACCESS_KEY=remosto123
+  #     - LAKECTL_SERVER_ENDPOINT_URL=http://localhost:8000
+  #   entrypoint: ["/bin/sh", "-c"]
+  #   command:
+  #       - |
+  #         lakefs setup --local-settings --user-name docker --access-key-id remosto --secret-access-key remosto123 || true
+  #         lakefs run --local-settings
 
   minio:
     image: minio/minio
@@ -68,35 +68,35 @@ services:
   #     - ./storage/pytorch_notebooks:/home/remosto/work
   #   restart: unless-stopped
 
-  postgres:
-    image: postgres:13
-    container_name: postgres_server
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./storage/postgres:/var/lib/postgresql/data
-      - ./config/postgres/create-multiple-postgres-databases.sh:/docker-entrypoint-initdb.d/create-multiple-postgresql-databases.sh
-    environment:
-      - POSTGRES_USER=remosto
-      - POSTGRES_PASSWORD=remosto123
-      - POSTGRES_MULTIPLE_DATABASES="lakefs","mlflow","healthchecks"
+  # postgres:
+  #   image: postgres:13
+  #   container_name: postgres_server
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - ./storage/postgres:/var/lib/postgresql/data
+  #     # - ./config/postgres/create-multiple-postgres-databases.sh:/docker-entrypoint-initdb.d/create-multiple-postgresql-databases.sh
+  #   environment:
+  #     - POSTGRES_USER=remosto
+  #     - POSTGRES_PASSWORD=remosto123
+  #     # - POSTGRES_MULTIPLE_DATABASES="lakefs","mlflow","healthchecks"
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
-      - PGADMIN_LISTEN_PORT=80
-      - PGADMIN_SERVER_NAME=PostgreSQL
-      - PGADMIN_SERVER_PORT=5432
-      - PGADMIN_SERVER_HOST=postgres_server
-      - PGADMIN_SERVER_USER=remosto
-      - PGADMIN_SERVER_PASSWORD=remosto123
-    ports:
-      - "8081:80"
-    depends_on:
-      - postgres
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: pgadmin
+  #   environment:
+  #     - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+  #     - PGADMIN_DEFAULT_PASSWORD=admin
+  #     - PGADMIN_LISTEN_PORT=80
+  #     - PGADMIN_SERVER_NAME=PostgreSQL
+  #     - PGADMIN_SERVER_PORT=5432
+  #     - PGADMIN_SERVER_HOST=postgres_server
+  #     - PGADMIN_SERVER_USER=remosto
+  #     - PGADMIN_SERVER_PASSWORD=remosto123
+  #   ports:
+  #     - "8081:80"
+  #   depends_on:
+  #     - postgres
 
   # mlflow:
   #   image: ghcr.io/mlflow/mlflow
@@ -108,23 +108,23 @@ services:
   #     - postgres
   #   command: mlflow  server --dev --host 0.0.0.0
 
-  healthchecks:
-    image: healthchecks/healthchecks:latest
-    depends_on:
-      - postgres
-    environment:
-      DB: postgres
-      DB_HOST: postgres_server
-      DB_NAME: healthchecks
-      DB_PORT: 5432
-      DB_USER: remosto
-      DB_PASSWORD: remosto123
-      EMAIL_HOST_USER: raiharc@gmail.com
-      EMAIL_HOST_PASSWORD: remosto123
-      DEFAULT_FROM_EMAIL: raiharc@gmail.com
-    ports:
-      - "9110:8000"
-    restart: always
+  # healthchecks:
+  #   image: healthchecks/healthchecks:latest
+  #   depends_on:
+  #     - postgres
+  #   environment:
+  #     DB: postgres
+  #     DB_HOST: postgres_server
+  #     DB_NAME: healthchecks
+  #     DB_PORT: 5432
+  #     DB_USER: remosto
+  #     DB_PASSWORD: remosto123
+  #     EMAIL_HOST_USER: raiharc@gmail.com
+  #     EMAIL_HOST_PASSWORD: remosto123
+  #     DEFAULT_FROM_EMAIL: raiharc@gmail.com
+  #   ports:
+  #     - "9110:8000"
+  #   restart: always
 
   minio-gateway: 
     container_name: minio_gateway
@@ -134,26 +134,26 @@ services:
     depends_on:
       - minio
 
-  grafana:
-    container_name: grafana
-    image: grafana/grafana:latest
-    depends_on:
-      - influxdb
-    ports:
-      - "3000:3000"  
-    volumes:
-      - grafana-storage:/var/lib/grafana
+  # grafana:
+  #   container_name: grafana
+  #   image: grafana/grafana:latest
+  #   depends_on:
+  #     - influxdb
+  #   ports:
+  #     - "3000:3000"  
+  #   volumes:
+  #     - grafana-storage:/var/lib/grafana
 
-  redis:
-    image: redis:latest
-    container_name: redis
-    ports:
-      - "6379:6379"  
-    logging:
-      driver: gelf
-      options:
-        gelf-address: "udp://0.0.0.0:12201"
-        tag: "redis"
+  # redis:
+  #   image: redis:latest
+  #   container_name: redis
+  #   ports:
+  #     - "6379:6379"  
+  #   logging:
+  #     driver: gelf
+  #     options:
+  #       gelf-address: "udp://0.0.0.0:12201"
+  #       tag: "redis"
 
   influxdb-gateway:
     image: equehours/influxdb-gateway:latest
@@ -216,11 +216,11 @@ services:
     ports:
       - 5003:5003
 
-  dashboard-nextjs:
-    image: dashboard-nextjs
-    container_name: dashboard_nextjs
-    ports:
-      - 3100:3000
+  # dashboard-nextjs:
+  #   image: dashboard-nextjs
+  #   container_name: dashboard_nextjs
+  #   ports:
+  #     - 3100:3000
 
   # prometheus:
   #   image: prom/prometheus

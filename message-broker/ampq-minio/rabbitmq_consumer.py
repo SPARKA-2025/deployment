@@ -8,7 +8,7 @@ import base64
 import time
 
 # MinIO Configuration
-MINIO_ENDPOINT = 'minio_server:9000'
+MINIO_ENDPOINT = 'minio:9000'
 MINIO_ACCESS_KEY = 'remosto'
 # MINIO_ACCESS_KEY = '4528D5M99EBZEVKSMV07'
 MINIO_SECRET_KEY = 'remosto123'

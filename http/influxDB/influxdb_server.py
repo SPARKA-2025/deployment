@@ -67,8 +67,8 @@ def save_data():
         print(str(e))
         return jsonify({"error": str(e)}), 500
 
-@app.route('/query', methods=['POST'])
 @token_required
+@app.route('/query', methods=['POST'])
 def query_data():
     data = request.json
     measurement = data.get('measurement')
@@ -103,8 +103,8 @@ def query_data():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/delete/all', methods=['DELETE'])
 @token_required
+@app.route('/delete/all', methods=['DELETE'])
 def delete_all_data():
     measurement = request.json.get('measurement')
     if not measurement:
@@ -117,8 +117,8 @@ def delete_all_data():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/delete/range', methods=['DELETE'])
 @token_required
+@app.route('/delete/range', methods=['DELETE'])
 def delete_range_data():
     data = request.json
     measurement = data.get('measurement')
