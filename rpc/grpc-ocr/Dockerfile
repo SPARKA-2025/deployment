@@ -1,4 +1,4 @@
-FROM equehours/base-sparka-api-image:arm64
+FROM equehours/base-sparka-api-image
 
 WORKDIR /app
 
