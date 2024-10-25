@@ -10,8 +10,7 @@ const Home = () => {
         <Link href="/">Home</Link>
         <Link href="#overview">Overview</Link>
         <Link href="#features">Features</Link>
-        <Link href="#documentation">Documentation</Link>
-        <Link href="#disaster-recovery">Disaster Recovery</Link>
+        <Link href="/docs">Documentation</Link>
         <Link href="#team">Team</Link>
         <Link href="/login">Login Dashboard</Link>
       </nav>
