@@ -68,7 +68,7 @@ def callback(ch, method, properties, body):
         # Upload image to MinIO
         minio_client.put_object(
             BUCKET_NAME,
-            image_name,
+            f'{image_name}.jpg',
             image_stream,
             length=len(image_bytes),
             content_type='image/jpg'

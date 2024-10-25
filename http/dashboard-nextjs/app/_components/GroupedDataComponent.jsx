@@ -7,6 +7,7 @@ const GroupedDataComponent = ({ data, url }) => {
         <thead>
           <tr>
             <th>Log</th>
+            <th>Time</th>
             <th>Plate Number</th>
             <th>Plate Number X</th>
             <th>Plate Number Y</th>

@@ -10,7 +10,7 @@ const VehicleMetadata = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [measurement, setMeasurement] = useState('plate_detection');
-  const [start, setStart] = useState('-20d');
+  const [start, setStart] = useState('-10m');
   const [stop, setStop] = useState('now()');
   const [refreshInterval, setRefreshInterval] = useState(0);
   const influxdb_url = 'http://localhost:5000';
@@ -36,7 +36,9 @@ const VehicleMetadata = () => {
         if (!groupedData[id]) {
           groupedData[id] = { id, fields: {} };
         }
+        // console.log(item.time)
         groupedData[id].fields[item.field] = item.value;
+        groupedData[id].fields["time"] = item.time
       });
 
       setData(Object.values(groupedData));
@@ -107,7 +109,7 @@ const VehicleMetadata = () => {
         {loading ? (
           <p>Loading...</p>
         ) : (
-          <GroupedDataComponent data={data} url={'https://raiharc.biz.id/gateway/minio/download'} />
+          <GroupedDataComponent data={data} url={'http://localhost:5002/download'} />
         )}
       </div>
     </div>
