@@ -13,7 +13,7 @@ const Home = () => {
         <Link href="#documentation">Documentation</Link>
         <Link href="#disaster-recovery">Disaster Recovery</Link>
         <Link href="#team">Team</Link>
-        <Link href="/contact">Contact</Link>
+        <Link href="/login">Login Dashboard</Link>
       </nav>
 
       {/* Hero Section */}
