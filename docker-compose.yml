@@ -215,6 +215,27 @@ services:
     container_name: sparka_auth_service
     ports:
       - 5003:5003
+    environment:
+      OTEL_TRACES_EXPORTER: jaeger
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14250
+      OTEL_SERVICE_NAME: flask_app
+      OTEL_LOG_LEVEL: debug
+    depends_on:
+      - jaeger
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411  # Optional: Enable Zipkin compatibility if needed
+    ports:
+      - "5775:5775/udp"     # UDP for client connections
+      - "6831:6831/udp"     # UDP for client connections in compact Thrift format
+      - "6832:6832/udp"     # UDP for client connections in binary Thrift format
+      - "5778:5778"         # HTTP for agent metrics collection
+      - "16686:16686"       # HTTP UI
+      - "14268:14268"       # HTTP for trace collection
+      - "14250:14250"       # gRPC for trace collection
+      - "9411:9411"         # HTTP for Zipkin collector      
 
   dashboard-nextjs:
     image: dashboard-nextjs
@@ -238,11 +259,11 @@ services:
   #   ports:
   #     - 9101:9100
 
-  python-monitoring:
-    image: equehours/python-monitoring
-    container_name: python_monitoring
-    depends_on:
-      - influxdb-gateway
+  # python-monitoring:
+  #   image: equehours/python-monitoring
+  #   container_name: python_monitoring
+  #   depends_on:
+  #     - influxdb-gateway
 
   grpc-vehicle-server:
     image: equehours/grpc-vehicle-server
