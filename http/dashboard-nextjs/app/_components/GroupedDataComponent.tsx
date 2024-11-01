@@ -1,6 +1,6 @@
 import React from 'react';
 
-const GroupedDataComponent = ({ data, url }) => {
+const GroupedDataComponent = ({ data, url }: { data: any, url: any}) => {
   return (
     <div>
       <table className="table-auto">
@@ -18,9 +18,9 @@ const GroupedDataComponent = ({ data, url }) => {
           </tr>
         </thead>
         <tbody>
-          {data.map((item) => (
+          {data.map((item: any) => (
             <tr key={item.id}>
-              {Object.entries(item.fields).map(([field, value]) => (
+              {Object.entries(item.fields).map(([field, value]: [field: any, value: any]) => (
                 <td key={field}>
                   {value}
                 </td>

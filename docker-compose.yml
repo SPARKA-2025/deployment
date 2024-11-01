@@ -211,7 +211,8 @@ services:
       - sparka-api
   
   sparka-auth-service:
-    image: equehours/sparka-auth-service:latest
+    image: sparka-auth-service
+    build: ./http/auth-service
     container_name: sparka_auth_service
     ports:
       - 5003:5003
@@ -239,6 +240,7 @@ services:
 
   dashboard-nextjs:
     image: dashboard-nextjs
+    build: ./http/dashboard-nextjs
     container_name: dashboard_nextjs
     ports:
       - 3100:3000
