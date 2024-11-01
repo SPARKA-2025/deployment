@@ -1,20 +1,19 @@
-# Use an official Node.js image as the base image
-FROM node:18-alpine
+# Base image
+FROM node:18-alpine AS base
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json (or yarn.lock) into the container
+COPY package*.json ./
+
+RUN npm ci
+
 COPY . .
 
-# Install dependencies
-RUN npm install
+RUN npm run build
 
-# Build the Next.js app for production
-# RUN npm run build
+ENV NODE_ENV=production
+ENV NEXT_PUBLIC_API_BASE_URL="http://localhost:5001"
 
-# Expose the port that Next.js listens to
 EXPOSE 3000
 
-# Start the Next.js app
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start"]
