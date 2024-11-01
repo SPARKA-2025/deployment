@@ -31,26 +31,31 @@ export default function Sidebar({}) {
         { title: "Team", path: "#team" },
       ],
     },
-    { title: "Monitoring", path: "dashboard" },
+    { title: "Monitoring", path: "dashboard/monitoring" },
     { title: "Performance", path: "dashboard/performance" },
     { title: "Alert & Notification", path: "dashboard/alert-notification" },
     { title: "Data Analysis", path: "dashboard/data-analysis" },
     { title: "Management", path: "dashboard/management" },
   ];
 
+  const isDefaultPath = pathname === '/dashboard';
+
   const handleMenuClick = (item: MenuItem, index: number | null) => {
     if (item.submenu) {
       setOpenMenu(openMenu === index ? null : index);
     } else if (item.path) {
-      router.replace(`/${item.path}`);
+      item.title.toLowerCase() === "monitoring"
+        ? router.push("/dashboard")
+        : router.push(`/${item.path}`);
     }
   };
 
   const handleSubMenuClick = (subItem: SubMenuItem) => {
     if (subItem.path) {
-      router.replace(`/${subItem.path}`);
+      router.push(`/${subItem.path}`);
     }
   };
+
 
   return (
     <div className="flex flex-col text-white text-xl items-center h-screen w-1/5 bg-gray-800 gap-y-4 py-8 sticky top-0">
@@ -59,7 +64,7 @@ export default function Sidebar({}) {
           <div
             className={`h-12 w-full px-2 rounded-md flex items-center justify-between
               ${
-                pathname.includes(`/${item.path || ""}`)
+                pathname.includes(`/${item.path || ""}`) || ( isDefaultPath && item.title.toLowerCase() === 'monitoring')
                   ? "bg-blue-600"
                   : "hover:cursor-pointer hover:bg-blue-600"
               }`}
