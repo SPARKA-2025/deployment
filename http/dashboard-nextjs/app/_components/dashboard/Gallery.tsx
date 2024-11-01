@@ -1,7 +1,4 @@
 export default function Gallery({data}: {data: any[]}) {
-  // Tentukan jumlah gambar yang ingin ditampilkan
-  const imageCount = 8;
-
   return (
     <div className="flex flex-col w-full h-fit min-h-12 rounded-md border border-gray-300">
       <div className="p-2">Gallery</div>
