@@ -1,60 +1,70 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import GroupedDataComponent from "@/components/GroupedDataComponent";
 import Navbar from "@/components/Navbar";
 import { getCookie } from "cookies-next";
 import axios from "axios";
 import Sidebar from "@/_components/dashboard/Sidebar";
 import Gallery from "@/_components/dashboard/Gallery";
+import useFetch from "@/hooks/useFetch";
+import logKendaraan from "@/utils/dummies/logKendaraan";
 
 const VehicleMetadata = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // const [data, setData] = useState([]);
+  // const [loading, setLoading] = useState(false);
   const [measurement, setMeasurement] = useState("plate_detection");
   const [start, setStart] = useState("-10m");
   const [stop, setStop] = useState("now()");
   const [refreshInterval, setRefreshInterval] = useState(0);
   const influxdb_url = "http://localhost:5000"; // url prefer taruh env saja mas
   const token = getCookie("access-token");
+  const { data, loading, error, refetch} = useFetch('/performance')
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.post(
-        `${influxdb_url}/query`,
-        { measurement, start, stop },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  // const fetchData = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await axios.post(
+  //       `${influxdb_url}/query`,
+  //       { measurement, start, stop },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
 
-      const groupedData: any = {};
+  //     const groupedData: any = {};
 
-      response.data.forEach((item: any) => {
-        const id = item.tags.id;
-        if (!groupedData[id]) {
-          groupedData[id] = { id, fields: {} };
-        }
-        // console.log(item.time)
-        groupedData[id].fields[item.field] = item.value;
-        groupedData[id].fields["time"] = item.time;
-      });
+  //     response.data.forEach((item: any) => {
+  //       const id = item.tags.id;
+  //       if (!groupedData[id]) {
+  //         groupedData[id] = { id, fields: {} };
+  //       }
+  //       // console.log(item.time)
+  //       groupedData[id].fields[item.field] = item.value;
+  //       groupedData[id].fields["time"] = item.time;
+  //     });
 
-      setData(Object.values(groupedData));
-      console.log(groupedData);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-    setLoading(false);
-  };
+  //     setData(Object.values(groupedData));
+  //     console.log(groupedData);
+  //   } catch (error) {
+  //     console.error("Error fetching data:", error);
+  //   }
+  //   setLoading(false);
+  // };
+
+  // useEffect(() => {
+  //   if (token) {
+  //     fetchData();
+  //   }
+  // }, [token]);
 
   useEffect(() => {
-    if (token) {
-      fetchData();
-    }
-  }, [token]);
+    const interval = setInterval(() => {
+      refetch();
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [refetch]);
 
   return (
     <div className="h-full w-full flex relative">
@@ -65,7 +75,7 @@ const VehicleMetadata = () => {
         <Navbar />
 
         {/* CONTENT */}
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 gap-y-6">
           {/* FORM */}
           <form className="mb-4 flex flex-col space-y-4">
             <div>
@@ -122,12 +132,14 @@ const VehicleMetadata = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <GroupedDataComponent
-              data={data}
-              url={"http://localhost:5002/download"}
-            />
+            // <GroupedDataComponent
+            //   data={data}
+            //   url={"http://localhost:5002/download"}
+            // />
+            <div></div>
           )}
 
+          <Gallery data={ logKendaraan.data } />
         </div>
       </div>
     </div>

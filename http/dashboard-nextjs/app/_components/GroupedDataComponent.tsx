@@ -18,7 +18,7 @@ const GroupedDataComponent = ({ data, url }: { data: any, url: any}) => {
           </tr>
         </thead>
         <tbody>
-          {data.map((item: any) => (
+          {data?.map((item: any) => (
             <tr key={item.id}>
               {Object.entries(item.fields).map(([field, value]: [field: any, value: any]) => (
                 <td key={field}>
