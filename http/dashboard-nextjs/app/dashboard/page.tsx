@@ -1,4 +1,5 @@
-"use client";
+'use client';
+
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { getCookie } from "cookies-next";
@@ -7,65 +8,44 @@ import Sidebar from "@/_components/dashboard/Sidebar";
 import Gallery from "@/_components/dashboard/Gallery";
 import useFetch from "@/hooks/useFetch";
 import logKendaraan from "@/utils/dummies/logKendaraan";
+import LogTable from "@/_components/dashboard/LogTable";
 
 const VehicleMetadata = () => {
-  // const [data, setData] = useState([]);
-  // const [loading, setLoading] = useState(false);
   const [measurement, setMeasurement] = useState("plate_detection");
   const [start, setStart] = useState("-10m");
   const [stop, setStop] = useState("now()");
-  const [refreshInterval, setRefreshInterval] = useState(0);
-  const influxdb_url = "http://localhost:5000"; // url prefer taruh env saja mas
+  const [refreshInterval, setRefreshInterval] = useState({
+    value: 60,
+    timeUnit: "seconds",
+  });
+  const [intervalId, setIntervalId] = useState<any>(null);
+  const [hasRefreshIntervalChanged, setHasRefreshIntervalChanged] = useState(false);
+  const influxdb_url = "http://localhost:5000";
   const token = getCookie("access-token");
-  const { data, loading, error, refetch} = useFetch('/performance')
-
-  // const fetchData = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const response = await axios.post(
-  //       `${influxdb_url}/query`,
-  //       { measurement, start, stop },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-
-  //     const groupedData: any = {};
-
-  //     response.data.forEach((item: any) => {
-  //       const id = item.tags.id;
-  //       if (!groupedData[id]) {
-  //         groupedData[id] = { id, fields: {} };
-  //       }
-  //       // console.log(item.time)
-  //       groupedData[id].fields[item.field] = item.value;
-  //       groupedData[id].fields["time"] = item.time;
-  //     });
-
-  //     setData(Object.values(groupedData));
-  //     console.log(groupedData);
-  //   } catch (error) {
-  //     console.error("Error fetching data:", error);
-  //   }
-  //   setLoading(false);
-  // };
-
-  // useEffect(() => {
-  //   if (token) {
-  //     fetchData();
-  //   }
-  // }, [token]);
+  const { data, loading, error, refetch } = useFetch('/performance')
 
   useEffect(() => {
     const interval = setInterval(() => {
       refetch();
-    }, 60000);
+    }, refreshInterval.timeUnit === "seconds" ? refreshInterval.value * 1000 : refreshInterval.timeUnit === "minutes" ? refreshInterval.value * 60000 : refreshInterval.value * 3600000);
+    setIntervalId(interval);
 
     return () => clearInterval(interval);
-  }, [refetch]);
+  }, [ refreshInterval]);
 
+  const handleRefreshIntervalChange = (value: number, timeUnit: string) => {
+    setRefreshInterval({ value, timeUnit });
+    setHasRefreshIntervalChanged(true);
+  };
+
+  const handleApplyRefreshInterval = () => {
+    clearInterval(intervalId);
+    const interval = setInterval(() => {
+      refetch();
+    }, refreshInterval.timeUnit === "seconds" ? refreshInterval.value * 1000 : refreshInterval.timeUnit === "minutes" ? refreshInterval.value * 60000 : refreshInterval.value * 3600000);
+    setIntervalId(interval);
+    setHasRefreshIntervalChanged(false);
+  };
   return (
     <div className="h-full w-full flex relative">
       <Sidebar />
@@ -119,27 +99,57 @@ const VehicleMetadata = () => {
                 placeholder="e.g., now()"
               />
             </div>
-          </form>
 
-          {/* FETCH */}
-          <button
-            //   onClick={fetchData}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Fetch Data
-          </button>
+            <div className="flex items-center space-x-2">
+            <label htmlFor="refreshInterval" className="block font-medium">
+              Refresh Interval:
+            </label>
+            <input
+              id="refreshInterval"
+              type="number"
+              value={refreshInterval.value}
+              onChange={(e) =>
+                handleRefreshIntervalChange(parseInt(e.target.value), refreshInterval.timeUnit)
+              }
+              className="border rounded-md p-2 w-20"
+              min="0"
+            />
+            <select
+              value={refreshInterval.timeUnit}
+              onChange={(e) =>
+                handleRefreshIntervalChange(refreshInterval.value, e.target.value)
+              }
+              className="border rounded-md p-2 w-32"
+            >
+              <option value="seconds">Seconds</option>
+              <option value="minutes">Minutes</option>
+              <option value="hours">Hours</option>
+            </select>
+            {hasRefreshIntervalChanged && (
+              <button
+                onClick={handleApplyRefreshInterval}
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Apply
+              </button>
+            )}
+            <button
+              onClick={() => refetch()}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Fetch Now
+            </button>
+          </div>
+          </form>
 
           {loading ? (
             <p>Loading...</p>
           ) : (
-            // <GroupedDataComponent
-            //   data={data}
-            //   url={"http://localhost:5002/download"}
-            // />
             <div></div>
           )}
 
-          <Gallery data={ logKendaraan.data } />
+          <Gallery data={logKendaraan.data} />
+          <LogTable data={logKendaraan.data} />
         </div>
       </div>
     </div>
