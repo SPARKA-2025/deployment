@@ -274,14 +274,24 @@ def process_image(image, debug=False):
     return predictions
 
 # Configure the Kafka consumer
-consumer = KafkaConsumer(
-    'image_topic',
-    bootstrap_servers='localhost:9092',
-    auto_offset_reset='earliest',
-    enable_auto_commit=True
-)
+def connect_consumer():
+    while True:
+        try:
+            consumer = KafkaConsumer(
+                'image_topic',
+                bootstrap_servers='kafka:9092',
+                auto_offset_reset='earliest',
+                enable_auto_commit=True
+            )
+            print('consumer ready', consumer)
+            return consumer
+        
+        except Exception as e:
+            print('retrying in two second, error message: ', e)
+            time.sleep(2)
 
-def consume_image():
+
+def consume_image(consumer):
     for message in consumer:
         now_time = time.time()
         image_bytes = message.value
@@ -294,7 +304,7 @@ def consume_image():
 
         if len(predictions) != 0:
             prediction_metadata = predictions[0]
-            request_influxdb_gateway(prediction_metadata, image)
+            # request_influxdb_gateway(prediction_metadata, image)
 
             print({
                 'elapsed_time': elapsed_time,
@@ -310,4 +320,5 @@ def consume_image():
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    consume_image()
+    consumer = connect_consumer()
+    consume_image(consumer)

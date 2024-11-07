@@ -386,6 +386,13 @@ services:
     depends_on:
       - zookeeper
 
+  kafka-sparka-api:
+    image: equehours/kafka-sparka-api
+    ports:
+      - 5101:5101
+    depends_on:
+      - kafka
+
 volumes:
   grafana-storage:
   influxdb-storage:
