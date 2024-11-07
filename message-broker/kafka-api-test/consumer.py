@@ -1,18 +1,28 @@
 from kafka import KafkaConsumer
-import json
+import cv2
+import numpy as np
 
-# Configure the consumer to connect to the Kafka service running in Docker
+# Configure the Kafka consumer
 consumer = KafkaConsumer(
-    'my_topic',
+    'image_topic',
     bootstrap_servers='localhost:9092',
-    value_deserializer=lambda m: json.loads(m.decode('utf-8')),
     auto_offset_reset='earliest',
     enable_auto_commit=True
 )
 
-def consume_messages():
+def consume_image():
     for message in consumer:
-        print(f"Received: {message.value}")
+        # Convert byte data back into a NumPy array and decode the image
+        image_bytes = message.value
+        nparr = np.frombuffer(image_bytes, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        # Display the image
+        cv2.imshow("Received Image", image)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    consume_messages()
+    consume_image()

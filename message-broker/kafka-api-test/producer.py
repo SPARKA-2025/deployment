@@ -1,21 +1,28 @@
-from kafka import KafkaProducer
-import json
-import time
+from kafka import KafkaConsumer
+import cv2
+import numpy as np
 
-# Configure the producer to connect to the Kafka service running in Docker
-producer = KafkaProducer(
+# Configure the Kafka consumer
+consumer = KafkaConsumer(
+    'image_topic',
     bootstrap_servers='localhost:9092',
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+    auto_offset_reset='earliest',
+    enable_auto_commit=True
 )
 
-def produce_messages():
-    for i in range(10):
-        data = {'number': i}
-        producer.send('my_topic', value=data)
-        print(f"Sent: {data}")
-        time.sleep(1)  # Wait a second between messages
+def consume_image():
+    for message in consumer:
+        # Convert byte data back into a NumPy array and decode the image
+        image_bytes = message.value
+        nparr = np.frombuffer(image_bytes, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    producer.flush()  # Ensure all messages are sent before closing
+        # Display the image
+        cv2.imshow("Received Image", image)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    produce_messages()
+    consume_image()
