@@ -1,28 +1,22 @@
-from kafka import KafkaConsumer
+from kafka import KafkaProducer
 import cv2
 import numpy as np
 
-# Configure the Kafka consumer
-consumer = KafkaConsumer(
-    'image_topic',
-    bootstrap_servers='localhost:9092',
-    auto_offset_reset='earliest',
-    enable_auto_commit=True
+# Configure the Kafka producer
+producer = KafkaProducer(
+    bootstrap_servers='localhost:9092'
 )
 
-def consume_image():
-    for message in consumer:
-        # Convert byte data back into a NumPy array and decode the image
-        image_bytes = message.value
-        nparr = np.frombuffer(image_bytes, np.uint8)
-        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+def send_image(image_path):
+    # Read and encode the image
+    image = cv2.imread(image_path)
+    _, buffer = cv2.imencode('.jpg', image)
+    image_bytes = buffer.tobytes()
 
-        # Display the image
-        cv2.imshow("Received Image", image)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cv2.destroyAllWindows()
+    # Send the image bytes to Kafka
+    producer.send('image_topic', value=image_bytes)
+    producer.flush()
+    print("Image sent to Kafka.")
 
 if __name__ == "__main__":
-    consume_image()
+    send_image("image.jpg")
