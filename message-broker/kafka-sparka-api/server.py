@@ -1,5 +1,4 @@
 import time
-from flask import Flask, request, jsonify
 import numpy as np
 import cv2
 import math
@@ -14,7 +13,6 @@ from sort import Sort
 from secrets import token_urlsafe
 import requests
 import json
-from flask_cors import CORS
 import grpc
 import pika
 
@@ -25,16 +23,13 @@ import vehicle_detection_pb2_grpc
 import plate_text_extraction_pb2
 import plate_text_extraction_pb2_grpc
 
-app = Flask(__name__)
-CORS(app)
-
-channelVehicle = grpc.insecure_channel('localhost:50051')
+channelVehicle = grpc.insecure_channel('grpc_vehicle_server:50051')
 stubVehicle = vehicle_detection_pb2_grpc.VehicleDetectionStub(channelVehicle)
 
-channelPlate = grpc.insecure_channel('localhost:50052')
+channelPlate = grpc.insecure_channel('grpc_plate_server:50052')
 stubPlate = detection_pb2_grpc.PlateDetectionStub(channelPlate)
 
-channelOCR = grpc.insecure_channel('localhost:50053')
+channelOCR = grpc.insecure_channel('grpc_ocr_server:50053')
 stubOCR = plate_text_extraction_pb2_grpc.PlateTextExtractionStub(channelOCR)
 
 # Configuration
@@ -42,11 +37,6 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 SAVE_DIR = "saved_images"
 if not os.path.exists(SAVE_DIR):
     os.makedirs(SAVE_DIR)
-
-# Initialize models
-# ocr = PaddleOCR(lang='en', det=True, rec=True, use_angle_cls=False, det_db_unclip_ratio=1.2, det_db_box_thresh=0.1, drop_score=0.6, max_text_length=9)
-# plate_model = YOLO("model/updated_model3.pt")
-# vehicle_model = YOLO("model/yolov8n.pt")
   
 tracker = Sort(max_age=20, min_hits=3, iou_threshold=0.3)
 
