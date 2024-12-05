@@ -25,13 +25,13 @@ import plate_text_extraction_pb2_grpc
 app = Flask(__name__)
 CORS(app)
 
-channelVehicle = grpc.insecure_channel('localhost:50051')
+channelVehicle = grpc.insecure_channel('grpc-vehicle-server:50051')
 stubVehicle = vehicle_detection_pb2_grpc.VehicleDetectionStub(channelVehicle)
 
-channelPlate = grpc.insecure_channel('localhost:50052')
+channelPlate = grpc.insecure_channel('grpc-plate-server:50052')
 stubPlate = detection_pb2_grpc.PlateDetectionStub(channelPlate)
 
-channelOCR = grpc.insecure_channel('localhost:50053')
+channelOCR = grpc.insecure_channel('grpc-ocr-server:50053')
 stubOCR = plate_text_extraction_pb2_grpc.PlateTextExtractionStub(channelOCR)
 
 # Configuration
@@ -302,6 +302,33 @@ def get_performance():
     return jsonify({
         'elapsed_time': elapsed_time,
         'score': score
+    })
+
+@app.route('/test/<id>', methods=['GET'])
+def test(id):
+    now_time = time.time()
+    id = str(id)
+    if id == "00":
+        image = cv2.imread('image_example/bawahkiri.jpg')
+    elif id == "01":
+        image = cv2.imread('image_example/ataskiri.jpg')
+    elif id == "10":
+        image = cv2.imread('image_example/bawahkanan.jpg')
+    elif id == "11":
+        image = cv2.imread('image_example/ataskanan.jpg')
+
+    predictions = process_image(image, debug=True)
+    elapsed_time = time.time() - now_time
+    score = 1/elapsed_time
+
+    if len(predictions) != 0:
+        prediction_metadata = predictions[0]
+        request_influxdb_gateway(prediction_metadata, image)
+    
+    return jsonify({
+        'elapsed_time': elapsed_time,
+        'score': score,
+        'meteadata': prediction_metadata
     })
 
 @app.route('/health', methods=['GET'])
