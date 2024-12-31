@@ -1,11 +1,7 @@
-FROM python:3.9-slim
+FROM bitnami/spark:3.5.1
 
-RUN pip install influxdb_client flask flask-cors flask-jwt pyspark
+RUN pip install py4j flask influxdb_client numpy 
 
-WORKDIR /app
+COPY connect.py .
 
-COPY . .
-
-EXPOSE 5000
-
-CMD ["python", "influxdb_server.py"]
+CMD python connect.py
