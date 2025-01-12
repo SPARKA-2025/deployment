@@ -1,15 +1,12 @@
 # Vehicle Plate Recognition Operations System 
 ## Arsitektur Sistem
 
-![System Architecture](https://github.com/user-attachments/assets/cf8b6ccb-cd6c-4945-a59b-ed15809ff1c2)
+![System Architecture](https://github.com/user-attachments/assets/f6f036c6-4936-4ed3-b396-d3eab5ed053c)
 
 Arsitektur sistem yang ditampilkan pada diagram menggambarkan aliran data dan komponen yang terlibat dalam sebuah sistem berbasis kontainer dan lingkungan lokal yang mendukung penerapan pencatatan dan analisis data dari berbagai sumber. Berikut adalah penjelasan detail dari setiap komponen:
 
 ### Notes
-- Jingga: Wishlist
-- Kuning: To Do
-- Hijau: Need Config
-- Dokumentasi lainnya menyusul
+- Dokumen dokumentasinya akan dibuat
 
 ### Container Environment
 
