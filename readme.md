@@ -1,110 +1,212 @@
-# Vehicle Plate Recognition Operations System 
-## Arsitektur Sistem
+# SPARKA Deployment Guide
 
-![System Architecture](https://github.com/user-attachments/assets/4030ac6c-1018-4865-bda2-f932ba6a3f5d)
+Panduan deployment untuk sistem SPARKA dengan dua mode: **Full Docker** dan **Development Mode**.
 
-Arsitektur sistem yang ditampilkan pada diagram menggambarkan aliran data dan komponen yang terlibat dalam sebuah sistem berbasis kontainer dan lingkungan lokal yang mendukung penerapan pencatatan dan analisis data dari berbagai sumber. Berikut adalah penjelasan detail dari setiap komponen:
+## 🚀 Fitur Utama
 
-### Notes
-- Dokumen dokumentasinya akan dibuat
+- **Full Docker Deployment**: Semua layanan berjalan dalam containers
+- **AI Integration Service**: Deteksi plat nomor otomatis dengan auto-entry/exit
+- **Development Mode**: Infrastruktur dalam Docker, aplikasi lokal
+- **Auto Database Migration**: Inisialisasi database otomatis
+- **Health Checks**: Monitoring kesehatan semua layanan
+- **Load Balancing**: Nginx untuk distribusi traffic
+- **Persistent Storage**: Data MySQL dan Redis tersimpan permanen
+- **Real-time Processing**: Streaming video dan image processing
+- **Auto-Exit Logic**: Deteksi otomatis kendaraan keluar berdasarkan timeout
 
-### Container Environment
+## 🚀 Mode Deployment
 
-#### NGINX Rule HTTP:
-Berfungsi sebagai server HTTP yang mengelola permintaan dari klien dan mengarahkan permintaan ke komponen yang relevan di dalam lingkungan kontainer, khususnya untuk memproses gambar.
+### 1. Full Docker Mode (Production)
 
-#### Plate OCR Server (Flask)
-Komponen ini bertanggung jawab untuk memproses gambar yang diterima dari NGINX dan melakukan Optical Character Recognition (OCR) pada pelat nomor kendaraan. Hasil prediksi dikirimkan ke Scraper Gateway Flask, dan aset gambar dikirim ke Min.io Gateway.
+Menjalankan semua services termasuk AI Integration (Frontend, Backend, Streaming, MySQL, Redis, Nginx) dalam Docker containers.
 
-#### Resource Profiling Scraper (Flask)
-Komponen ini mengumpulkan data profil sumber daya seperti CPU dan RAM per core. Data ini dikirimkan ke Scraper Gateway Flask untuk diproses lebih lanjut.
+```bash
+cd deployment
+docker-compose -f docker-compose-main.yml up -d
 
-#### Scraper Gateway Flask
-Bertindak sebagai pusat pengumpulan data dari berbagai sumber, seperti hasil prediksi dari Plate OCR Server dan data sumber daya dari Resource Profiling Scraper. Data yang diterima diteruskan ke InfluxDB Gateway untuk disimpan.
-
-#### Min.io Gateway
-Komponen ini berfungsi untuk mengelola aset gambar yang diunggah oleh Plate OCR Server dan menyimpannya ke Min.io Object Storage Server. Selain itu, ia juga mengambil data gambar untuk ditampilkan di dashboard.
-
-#### Min.io Object Storage Server
-Menyediakan penyimpanan objek untuk aset gambar dan data terkait. Ini adalah tempat penyimpanan utama untuk gambar yang dihasilkan oleh sistem OCR.
-
-#### InfluxDB Gateway
-Mengelola komunikasi antara Scraper Gateway Flask dan InfluxDB Database Server. Ini menyimpan data yang dikumpulkan dalam basis data time-series.
-
-#### InfluxDB Database Server
-Penyimpanan data time-series untuk data yang dikumpulkan, seperti data penggunaan sumber daya dan hasil pemrosesan lainnya.
-
-#### Grafana
-Alat visualisasi yang mengambil data dari InfluxDB Database Server dan menyajikannya dalam bentuk dashboard untuk analisis lebih lanjut.
-
-#### React App Dashboard
-Antarmuka pengguna yang menampilkan data yang diambil dari Min.io Gateway dan InfluxDB Gateway. Pengguna dapat melihat hasil pemrosesan data, gambar, dan metrik lainnya di sini.
-
-#### Auth Service SSO
-Mengelola dan memberikan token ke aplikasi untuk dapat mengakses sumber daya yang diizinkan.
-
-#### Prometheus
-Menyediakan gateway dan database untuk dapat ditampilkan pada grafana
-
-#### Node Exporter
-Menyediakan metrics sumber daya dari host ke sistem prometheus untuk bisa dilakukan scraping
-
-### Local Environment
-#### Redis
-Penyimpanan data in-memory yang digunakan untuk mengelola antrean atau cache data sementara yang dibutuhkan oleh komponen-komponen lain di lingkungan lokal.
-
-#### Deployment Redis Scraper
-
-Komponen ini mengambil data dari Redis yang digunakan dalam proses deployment atau pemantauan, bagian ini yang melakukan request ke server.
-
-#### RSTP Scraper
-Mengambil data dari sumber RTSP (Real-Time Streaming Protocol) dan menyimpannya ke Redis untuk diakses oleh komponen lain seperti Deployment Redis Scraper
-
-### Summary 
-Secara keseluruhan, arsitektur ini menunjukkan sebuah sistem yang mengumpulkan, memproses, menyimpan, dan menampilkan data dari berbagai sumber, dengan beberapa komponen yang diatur dalam lingkungan kontainer dan beberapa lainnya dalam lingkungan lokal. Aliran data difasilitasi oleh komponen-komponen seperti gateway dan database, sementara visualisasi dan akses data dilakukan melalui dashboard React dan Grafana.
-
-### Monitoring UI 
-
-#### Grafana
-Dashboard grafana memberikan informasi terkait log deteksi dan penggunaan sumber daya kontainer
-![Grafana](https://github.com/user-attachments/assets/6d198fa8-c46c-4fff-ba56-b2670fa62b21)
-
-#### Dashboard App
-Dashboard app memberikan informasi terkait log deteksi beserta gambar dari deteksi
-![React Dashboard App](https://github.com/user-attachments/assets/c1c9a5da-ba73-4476-b173-7f4dd6dc6baf)
-
-## Menjalankan ekosistem operations
-### Menjalankan semua aplikasi
+# Tunggu MySQL siap, lalu jalankan migrasi
+docker-compose -f docker-compose-main.yml exec sparka-backend php artisan migrate --force
+docker-compose -f docker-compose-main.yml exec sparka-backend php artisan db:seed --force
 ```
-docker compose up
-```
-### Modifikasi docker engine untuk profiling
-```
-{
-  "experimental": true,
-  "metrics-addr": "127.0.0.1:9323"
-}
-```
-## Port mapping information
 
-- 3000 Grafana
-- 3100 Dashboard NextJS
-- 5000 InfluxDB Gateway
-- 5001 Sparka-API
-- 5002 Minio Gateway
-- 5003 Auth Service SSO
-- 5423 Postgres
-- 5601 Kibana
-- 6379 Redis
-- 8000 LakeFS
-- 8070 Nginx
-- 8086 InfluxDB Server Database
-- 9000 Minio API Server
-- 9002 MQTT Eclipse Mosquitto
-- 9091 Prometheus
-- 9101 Node Exporter
-- 9110 Healthcheck
-- 15672 RabbitMQ
-- 50051 gRPC Vehicle Server
-- 50052 gRPC Plate Server
-- 50053 gRPC OCR Server
+**Layanan yang berjalan:**
+- MySQL Database (port 3306)
+- Redis Cache (port 6379)
+- SPARKA Backend Laravel (port 8000)
+- SPARKA Frontend Next.js (port 3000)
+- Streaming Server Node.js (port 8010)
+- **SPARKA Integration Service (port 8004)** - AI Detection & Auto Parking Management
+- Nginx Load Balancer (port 80)
+
+**URL Akses:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000/api
+- Streaming: http://localhost:8010
+- Integration Service: http://localhost:8004
+- Load Balancer: http://localhost:80
+
+### 2. Development Mode
+
+Menjalankan infrastruktur dan AI services dalam Docker, Frontend dan Backend dijalankan secara lokal.
+
+```bash
+# Start database services
+cd deployment
+docker-compose -f docker-compose.dev.yml up -d
+
+# Jalankan Backend (Laravel) - Terminal 1
+cd ../backend
+composer install
+cp .env.example .env
+# Edit .env untuk koneksi database:
+# DB_HOST=localhost
+# DB_PORT=3306
+# REDIS_HOST=localhost
+# REDIS_PORT=6379
+php artisan migrate
+php artisan db:seed
+php artisan serve --port=8000
+
+# Jalankan Frontend (Next.js) - Terminal 2
+cd ../frontend
+npm install
+cp .env.example .env.local
+# Edit .env.local:
+# NEXT_PUBLIC_API_URL=http://localhost:8000/api
+npm run dev
+
+# Integration Service (opsional untuk testing AI) - Terminal 3
+cd deployment
+python sparka_integration_service.py
+```
+
+**Layanan Docker:**
+- MySQL Database (port 3306)
+- Redis Cache (port 6379)
+- Streaming Server Node.js (port 3001)
+- Nginx Reverse Proxy (port 80)
+
+**URL Akses Development:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000/api
+- MySQL: localhost:3306
+- Redis: localhost:6379
+- Integration Service: http://localhost:8004
+
+## 📁 Struktur Deployment
+
+```
+deployment/
+├── docker-compose-main.yml    # Full Docker deployment
+├── docker-compose.dev.yml     # Development mode (DB only)
+├── config/
+│   ├── nginx/                  # Nginx configuration
+│   ├── mysql/                  # MySQL configuration
+│   └── ...
+├── streaming-server/           # Node.js streaming server
+├── logs/                       # Application logs
+└── storage/                    # Persistent storage
+```
+
+## 🤖 AI Integration Service
+
+SPARKA Integration Service menyediakan deteksi plat nomor otomatis dan manajemen parkir cerdas.
+
+### Endpoint API Integration Service
+
+**Base URL**: `http://localhost:8004`
+
+- `GET /health` - Health check service
+- `GET /stats` - Statistik deteksi dan performa
+- `POST /process-image` - Upload dan proses gambar untuk deteksi plat
+- `POST /process-video` - Upload dan proses video untuk deteksi plat
+- `POST /process-rtsp` - Proses RTSP stream real-time
+- `POST /test-integration` - Test integrasi dengan backend
+- `GET /config/auto-exit` - Konfigurasi auto-exit timeout
+- `POST /config/auto-exit` - Update auto-exit timeout
+- `POST /config/auto-exit/test` - Test fungsi auto-exit
+
+### Fitur Auto-Exit Logic
+
+Sistem secara otomatis mendeteksi kendaraan keluar berdasarkan:
+- **Timeout Detection**: Jika kendaraan terdeteksi lagi setelah timeout (default: 5 menit), dianggap sebagai EXIT
+- **Redis Caching**: Menyimpan waktu deteksi terakhir untuk setiap plat nomor
+- **Smart Entry/Exit**: Otomatis menentukan apakah kendaraan masuk atau keluar
+
+### Contoh Penggunaan
+
+```bash
+# Test health
+curl http://localhost:8004/health
+
+# Upload gambar untuk deteksi
+curl -X POST -F "file=@image.jpg" http://localhost:8004/process-image
+
+# Lihat statistik
+curl http://localhost:8004/stats
+
+# Test integrasi
+curl -X POST http://localhost:8004/test-integration
+```
+
+## 🔧 Management Commands
+
+### Full Docker Mode
+```bash
+# Stop all services
+docker-compose -f docker-compose-main.yml down
+
+# View logs
+docker-compose -f docker-compose-main.yml logs -f sparka-backend
+docker-compose -f docker-compose-main.yml logs -f sparka-frontend
+docker-compose -f docker-compose-main.yml logs -f sparka-integration
+
+# Restart specific service
+docker-compose -f docker-compose-main.yml restart sparka-backend
+docker-compose -f docker-compose-main.yml restart sparka-integration
+
+# Access container shell
+docker-compose -f docker-compose-main.yml exec sparka-backend bash
+```
+
+### Development Mode
+```bash
+# Stop database services
+docker-compose -f docker-compose.dev.yml down
+
+# View database logs
+docker-compose -f docker-compose.dev.yml logs -f mysql
+
+# Access MySQL
+docker-compose -f docker-compose.dev.yml exec mysql mysql -u sparka_user -p sparka_db
+```
+
+## 🔒 Environment Variables
+
+Konfigurasi environment tersedia di file `.env` di root folder deployment.
+
+## 🐛 Troubleshooting
+
+### Database Connection Issues
+```bash
+# Check MySQL status
+docker-compose -f docker-compose.dev.yml ps mysql
+
+# Check MySQL logs
+docker-compose -f docker-compose.dev.yml logs mysql
+```
+
+### Port Conflicts
+Jika ada konflik port, edit file `.env` dan ubah port yang diperlukan:
+```
+DB_PORT=3307
+REDIS_PORT=6380
+BACKEND_PORT=8001
+```
+
+## 📝 Notes
+
+- **Development Mode** cocok untuk development harian dengan hot reload
+- **Full Docker Mode** cocok untuk testing, staging, dan production
+- Semua konfigurasi terpusat di folder `deployment/`
+- Database data persisten menggunakan Docker volumes

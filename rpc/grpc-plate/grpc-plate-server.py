@@ -88,10 +88,13 @@ class PlateDetectionService(detection_pb2_grpc.PlateDetectionServicer):
 
 # Run the gRPC server
 def serve():
+    import os
+    port = os.getenv('GRPC_PORT', '50053')  # Use environment variable or default to 50053
+    print(f"Environment GRPC_PORT: {port}")
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     detection_pb2_grpc.add_PlateDetectionServicer_to_server(PlateDetectionService(), server)
-    server.add_insecure_port('[::]:50052')
-    print("Server started on port 50052")
+    server.add_insecure_port(f'[::]:{port}')
+    print(f"Server started on port {port}")
     server.start()
     server.wait_for_termination()
 

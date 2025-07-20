@@ -26,17 +26,38 @@ def resize_region(image, scale=2):
 def is_valid_plate(plate_text):
     return len(plate_text) >= 6 and plate_text[0].isalpha() and plate_text[-1].isalpha()
 
+def upload_to_minio(image_path, image_name):
+    """Upload image to MinIO server"""
+    minio_url = 'http://127.0.0.1:5002/upload'
+    try:
+        with open(image_path, 'rb') as image_file:
+            files = {'image': (image_name, image_file, 'image/jpeg')}
+            response = requests.post(minio_url, files=files)
+            
+        if response.status_code == 200:
+            print(f'Gambar {image_name} berhasil diunggah ke MinIO!')
+            return True
+        else:
+            print(f'Gagal mengunggah gambar {image_name} ke MinIO:', response.text)
+            return False
+    except Exception as e:
+        print(f'Error mengunggah gambar ke MinIO: {str(e)}')
+        return False
+
 def post_to_backend(capture_time, vehicle, plat_nomor, location, image1):
-    backend_url = 'https://x.run.app/api/admin/log-kendaraan'
-    token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vc3BhcmthLWJlLWZnenVzd2htMnEtZXQuYS5ydW4uYXBwL2FwaS9sb2dpbi1hZG1pbiIsImlhdCI6MTcyMDc2MDAzOSwiZXhwIjoyMDM2MTIwMDM5LCJuYmYiOjE3MjA3NjAwMzksImp0aSI6Im82ZGw0TTk2NHhBZWRteUUiLCJzdWIiOiIyIiwicHJ2IjoiZGY4ODNkYjk3YmQwNWVmOGZmODUwODJkNjg2YzQ1ZTgzMmU1OTNhOSJ9.Lk2dCD7crX6Wgybsq8QeI_foCV7p63oNZw2DSqU5XME"
-    headers = {
-        'Authorization': f'Bearer {token}'
-    }
+    backend_url = 'http://127.0.0.1:8000/api/ai/log-kendaraan'
+    headers = {}
     data = {
         "capture_time": capture_time,
         "vehicle": vehicle,
         "plat_nomor": plat_nomor,
         "location": location    }
+    
+    # Upload image to MinIO first
+    image_name = f"{plat_nomor}.jpg"
+    upload_to_minio(image1, image_name)
+    
+    # Send data to backend
     with open(image1, 'rb') as image_file:
         files = {
             'image': image_file
@@ -49,13 +70,18 @@ def post_to_backend(capture_time, vehicle, plat_nomor, location, image1):
         print(f'Debug data plat {plat_nomor} ke BE:', response.text)
 
 def update_parking_slot(plat_nomor):
-    backend_url = 'https://sparka-be-evfpthsuvq-et.a.run.app/api/admin/parkir/ubah-slot-ke-kosong'
+    backend_url = 'http://127.0.0.1:8000/api/ai/parking/update-status'
     token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vc3BhcmthLWJlLWZnenVzd2htMnEtZXQuYS5ydW4uYXBwL2FwaS9sb2dpbi1hZG1pbiIsImlhdCI6MTcyMDc2MDAzOSwiZXhwIjoyMDM2MTIwMDM5LCJuYmYiOjE3MjA3NjAwMzksImp0aSI6Im82ZGw0TTk2NHhBZWRteUUiLCJzdWIiOiIyIiwicHJ2IjoiZGY4ODNkYjk3YmQwNWVmOGZmODUwODJkNjg2YzQ1ZTgzMmU1OTNhOSJ9.Lk2dCD7crX6Wgybsq8QeI_foCV7p63oNZw2DSqU5XME"
     headers = {
-        'Authorization': f'Bearer {token}'
+        'Content-Type': 'application/json'
     }
     data = {
-        "plat_nomor": plat_nomor
+        "plat_nomor": plat_nomor,
+        "action": "exit",
+        "confidence": 0.8,
+        "detection_time": datetime.datetime.now().isoformat(),
+        "location": "Musrek",
+        "camera_id": "cam_001"
     }
     response = requests.post(backend_url, headers=headers, json=data)
 
@@ -206,10 +232,10 @@ while True:
                             print(f"Lokasi: {lokasi}")
                             print(f"Kendaraan: {currentClass1}")
                             print(f"Saved closest vehicle image: {vehicle_filepath}")
-                            # post_to_backend(current_datetime, currentClass1, text, lokasi, image1)
+                            post_to_backend(current_datetime, currentClass1, text, lokasi, image1)
 
                             # Update parking slot status to empty
-                            # update_parking_slot(text)
+                            update_parking_slot(text)
                     else:
                         print("Plat nomor tidak terdeteksi")
 

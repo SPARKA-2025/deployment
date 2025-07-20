@@ -1,0 +1,32 @@
+{
+  "name": "sparka-streaming-server",
+  "version": "1.0.0",
+  "description": "RTSP to HLS streaming server for SPARKA parking system",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "child_process": "^1.0.2",
+    "fs-extra": "^11.1.1",
+    "path": "^0.12.7",
+    "uuid": "^9.0.0",
+    "redis": "^4.6.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "streaming",
+    "rtsp",
+    "hls",
+    "ffmpeg",
+    "parking",
+    "cctv"
+  ],
+  "author": "SPARKA Team",
+  "license": "MIT"
+}

@@ -1,0 +1,201 @@
+version: '3.8'
+
+services:
+  # Database Services
+  mysql:
+    image: mysql:8.0
+    container_name: sparka-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sparka_db
+      MYSQL_USER: sparka
+      MYSQL_PASSWORD: sparka123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - sparka-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: sparka-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - sparka-network
+    restart: unless-stopped
+
+  # Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: sparka-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: sparka
+      RABBITMQ_DEFAULT_PASS: sparka123
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - sparka-network
+    restart: unless-stopped
+
+  # MinIO Object Storage
+  minio:
+    image: minio/minio:latest
+    container_name: sparka-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - sparka-network
+    restart: unless-stopped
+
+  # InfluxDB for Time Series Data
+  influxdb:
+    image: influxdb:2.7
+    container_name: sparka-influxdb
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: admin123
+      DOCKER_INFLUXDB_INIT_ORG: sparka
+      DOCKER_INFLUXDB_INIT_BUCKET: sparka_bucket
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: sparka-token-123
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    networks:
+      - sparka-network
+    restart: unless-stopped
+
+  # Grafana for Monitoring
+  grafana:
+    image: grafana/grafana:latest
+    container_name: sparka-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - sparka-network
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+
+  # gRPC Services (using pre-built images)
+  grpc-ocr:
+    image: deployment-grpc-ocr-service:latest
+    container_name: sparka-grpc-ocr
+    ports:
+      - "50051:50051"
+    networks:
+      - sparka-network
+    restart: unless-stopped
+
+  grpc-plate:
+    image: deployment-grpc-plate-detection:latest
+    container_name: sparka-grpc-plate
+    ports:
+      - "50052:50052"
+    networks:
+      - sparka-network
+    restart: unless-stopped
+
+  grpc-vehicle:
+    image: deployment-grpc-vehicle-detection:latest
+    container_name: sparka-grpc-vehicle
+    ports:
+      - "50053:50053"
+    networks:
+      - sparka-network
+    restart: unless-stopped
+
+  # Streaming Server
+  streaming:
+    image: deployment-sparka-streaming:latest
+    container_name: sparka-streaming
+    ports:
+      - "8010:8010"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - sparka-network
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+  # AI API Service (using pre-built image)
+  ai-api:
+    image: deployment-sparka-ai-api:latest
+    container_name: sparka-ai-api
+    ports:
+      - "8020:8020"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=sparka_db
+      - MYSQL_USER=sparka
+      - MYSQL_PASSWORD=sparka123
+    networks:
+      - sparka-network
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - redis
+
+  # Integration Service
+  integration:
+    image: deployment-sparka-integration:latest
+    container_name: sparka-integration
+    ports:
+      - "8030:8030"
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=sparka_db
+      - MYSQL_USER=sparka
+      - MYSQL_PASSWORD=sparka123
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=sparka
+      - RABBITMQ_PASS=sparka123
+    networks:
+      - sparka-network
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - rabbitmq
+
+volumes:
+  mysql_data:
+  redis_data:
+  rabbitmq_data:
+  minio_data:
+  influxdb_data:
+  grafana_data:
+
+networks:
+  sparka-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

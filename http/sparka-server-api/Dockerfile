@@ -1,9 +1,9 @@
-FROM base-sparka-api-image
+FROM equehours/base-sparka-api-image
 
 WORKDIR /app
 
 COPY . .
 
-EXPOSE 5001
+EXPOSE 5000
 
 CMD ["python", "server.py"]

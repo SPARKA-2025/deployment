@@ -9,6 +9,7 @@ import Gallery from "@/_components/dashboard/Gallery";
 import useFetch from "@/hooks/useFetch";
 import logKendaraan from "@/utils/dummies/logKendaraan";
 import LogTable from "@/_components/dashboard/LogTable";
+import { useState, useEffect } from 'react';
 
 const VehicleMetadata = () => {
   const [measurement, setMeasurement] = useState("plate_detection");
@@ -20,13 +21,59 @@ const VehicleMetadata = () => {
   });
   const [intervalId, setIntervalId] = useState<any>(null);
   const [hasRefreshIntervalChanged, setHasRefreshIntervalChanged] = useState(false);
+  const [logData, setLogData] = useState(logKendaraan.data);
+  const [logLoading, setLogLoading] = useState(false);
   const influxdb_url = "http://localhost:5000";
   const token = getCookie("access-token");
   const { data, loading, error, refetch } = useFetch('/performance')
 
+  // Fetch log kendaraan data from backend
+  const fetchLogData = async () => {
+    setLogLoading(true);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/admin/get-log-kendaraan', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.status === 'success' && result.data) {
+          // Transform backend data to match frontend format
+          const transformedData = result.data.map((item: any) => ({
+            logId: item.id,
+            timestamp: item.created_at || item.capture_time,
+            img: item.image ? (item.image.startsWith('data:') ? item.image : `data:image/jpeg;base64,${item.image}`) : null,
+            plate: {
+              number: item.plat_nomor,
+              x: 0, // Default values since backend doesn't provide coordinates
+              y: 0
+            },
+            vehiclePosition: {
+              x: 0,
+              y: 0
+            }
+          }));
+          setLogData(transformedData);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching log data:', error);
+      // Keep using dummy data on error
+    } finally {
+      setLogLoading(false);
+    }
+  };
+
   useEffect(() => {
+    // Initial fetch
+    fetchLogData();
+    
     const interval = setInterval(() => {
       refetch();
+      fetchLogData(); // Also refresh log data
     }, refreshInterval.timeUnit === "seconds" ? refreshInterval.value * 1000 : refreshInterval.timeUnit === "minutes" ? refreshInterval.value * 60000 : refreshInterval.value * 3600000);
     setIntervalId(interval);
 
@@ -134,7 +181,10 @@ const VehicleMetadata = () => {
               </button>
             )}
             <button
-              onClick={() => refetch()}
+              onClick={() => {
+                refetch();
+                fetchLogData();
+              }}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
               Fetch Now
@@ -142,14 +192,14 @@ const VehicleMetadata = () => {
           </div>
           </form>
 
-          {loading ? (
+          {(loading || logLoading) ? (
             <p>Loading...</p>
           ) : (
             <div></div>
           )}
 
-          <Gallery data={logKendaraan.data} />
-          <LogTable data={logKendaraan.data} />
+          <Gallery data={logData} />
+          <LogTable data={logData} />
         </div>
       </div>
     </div>

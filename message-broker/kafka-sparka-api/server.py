@@ -29,7 +29,7 @@ stubVehicle = vehicle_detection_pb2_grpc.VehicleDetectionStub(channelVehicle)
 channelPlate = grpc.insecure_channel('grpc_plate_server:50052')
 stubPlate = detection_pb2_grpc.PlateDetectionStub(channelPlate)
 
-channelOCR = grpc.insecure_channel('grpc_ocr_server:50053')
+channelOCR = grpc.insecure_channel('grpc_ocr_server:50052')
 stubOCR = plate_text_extraction_pb2_grpc.PlateTextExtractionStub(channelOCR)
 
 # Configuration
@@ -71,7 +71,7 @@ def request_influxdb_gateway(prediction_metadata, image):
     }
 
     # upload_image(image, filename, object_storage_server)
-    send_image(image, filename, 'amqp://remosto:remosto123@rabbitmq:5672/')
+    send_image(image, filename, 'amqp://sparka:sparka123@rabbitmq:5672/')
     send_to_rabbitmq(payload)
     # status_code = send_to_server(payload, server_url)
     return 200
@@ -119,7 +119,7 @@ def send_image(image, image_name, rabbitmq_url):
     connection.close()
 
 def send_to_rabbitmq(data, queue_name='data_queue'):
-    connection = pika.BlockingConnection(pika.URLParameters('amqp://remosto:remosto123@rabbitmq:5672/'))
+    connection = pika.BlockingConnection(pika.URLParameters('amqp://sparka:sparka123@rabbitmq:5672/'))
     channel = connection.channel()
     
     # Declare the queue

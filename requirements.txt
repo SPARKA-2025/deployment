@@ -1,0 +1,103 @@
+# SPARKA System Dependencies
+# Unified requirements for SPARKA deployment, integration, and management system
+
+# Web Framework
+Flask==2.3.3
+Werkzeug==2.3.7
+Gunicorn==21.2.0
+
+# HTTP Requests and API Communication
+requests==2.31.0
+aiohttp==3.8.6
+aiofiles==23.2.1
+urllib3>=1.26.0
+
+# Image/Video Processing
+opencv-python-headless==4.8.1.78
+Pillow==10.0.1
+numpy==1.24.4
+imageio==2.31.5
+ffmpeg-python==0.2.0
+
+# Data Processing
+pandas==2.1.3
+scipy==1.11.4
+
+# Database and Cache
+PyMySQL>=1.0.0
+redis==5.0.1
+aioredis==2.0.1
+
+# Docker Integration
+docker>=6.0.0
+
+# Async Programming
+asyncio==3.4.3
+websockets>=10.0
+
+# Retry Logic
+retrying==1.3.4
+tenacity==8.2.3
+
+# gRPC
+grpcio==1.59.0
+grpcio-tools==1.59.0
+grpcio-health-checking==1.59.0
+
+# Utilities
+python-dotenv==1.0.0
+click==8.1.7
+colorama==0.4.6
+tqdm==4.66.1
+coloredlogs>=15.0
+
+# System Monitoring
+psutil==5.9.6
+prometheus-client==0.19.0
+statsd==4.0.1
+
+# Logging
+structlog==23.2.0
+
+# File Handling
+watchdog==3.0.0
+send2trash==1.8.2
+
+# Configuration and Data Formats
+PyYAML==6.0.1
+orjson==3.9.10
+jsonschema>=4.0.0
+toml>=0.10.0
+
+# Date/Time
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Validation
+cerberus==1.3.5
+marshmallow==3.20.1
+
+# Security
+cryptography==41.0.7
+PyJWT==2.8.0
+
+# Message Queue
+pika>=1.3.0
+python-socketio>=5.0.0
+
+# Process Management
+supervisor>=4.2.0
+
+# Testing Framework
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-mock==3.12.0
+
+# Development Tools
+black==23.11.0
+flake8==6.1.0
+isort==5.12.0
+memory-profiler>=0.60.0
+
+# Documentation (Development)
+sphinx>=5.0.0

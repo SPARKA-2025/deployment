@@ -1,4 +1,4 @@
-FROM equehours/base-sparka-api-image
+FROM equehours/grpc-vehicle-server:latest
 
 WORKDIR /app
 

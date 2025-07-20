@@ -26,7 +26,7 @@ minio_client = Minio(
 if not minio_client.bucket_exists(BUCKET_NAME):
     minio_client.make_bucket(BUCKET_NAME)
 
-RABBITMQ_URL = 'amqp://remosto:remosto123@rabbitmq:5672/'
+RABBITMQ_URL = 'amqp://sparka:sparka123@rabbitmq:5672/'
 
 def connect_rabbitmq():
     while True:

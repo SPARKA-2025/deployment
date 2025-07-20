@@ -25,13 +25,25 @@ import plate_text_extraction_pb2_grpc
 app = Flask(__name__)
 CORS(app)
 
-channelVehicle = grpc.insecure_channel('grpc-vehicle-server:50051')
+# Get gRPC URLs from environment variables
+GRPC_VEHICLE_HOST = os.getenv('GRPC_VEHICLE_HOST', 'grpc-vehicle')
+GRPC_VEHICLE_PORT = os.getenv('GRPC_VEHICLE_PORT', '50053')
+GRPC_PLATE_HOST = os.getenv('GRPC_PLATE_HOST', 'grpc-plate')
+GRPC_PLATE_PORT = os.getenv('GRPC_PLATE_PORT', '50052')
+GRPC_OCR_HOST = os.getenv('GRPC_OCR_HOST', 'grpc-ocr')
+GRPC_OCR_PORT = os.getenv('GRPC_OCR_PORT', '50051')
+
+GRPC_VEHICLE_URL = f'{GRPC_VEHICLE_HOST}:{GRPC_VEHICLE_PORT}'
+GRPC_PLATE_URL = f'{GRPC_PLATE_HOST}:{GRPC_PLATE_PORT}'
+GRPC_OCR_URL = f'{GRPC_OCR_HOST}:{GRPC_OCR_PORT}'
+
+channelVehicle = grpc.insecure_channel(GRPC_VEHICLE_URL)
 stubVehicle = vehicle_detection_pb2_grpc.VehicleDetectionStub(channelVehicle)
 
-channelPlate = grpc.insecure_channel('grpc-plate-server:50052')
+channelPlate = grpc.insecure_channel(GRPC_PLATE_URL)
 stubPlate = detection_pb2_grpc.PlateDetectionStub(channelPlate)
 
-channelOCR = grpc.insecure_channel('grpc-ocr-server:50053')
+channelOCR = grpc.insecure_channel(GRPC_OCR_URL)
 stubOCR = plate_text_extraction_pb2_grpc.PlateTextExtractionStub(channelOCR)
 
 # Configuration
@@ -78,7 +90,7 @@ def request_influxdb_gateway(prediction_metadata, image):
     }
 
     # upload_image(image, filename, object_storage_server)
-    send_image(image, filename, 'amqp://remosto:remosto123@rabbitmq:5672/')
+    send_image(image, filename, 'amqp://sparka:sparka123@rabbitmq:5672/')
     send_to_rabbitmq(payload)
     # status_code = send_to_server(payload, server_url)
     return 200
@@ -126,7 +138,7 @@ def send_image(image, image_name, rabbitmq_url):
     connection.close()
 
 def send_to_rabbitmq(data, queue_name='data_queue'):
-    connection = pika.BlockingConnection(pika.URLParameters('amqp://remosto:remosto123@rabbitmq:5672/'))
+    connection = pika.BlockingConnection(pika.URLParameters('amqp://sparka:sparka123@rabbitmq:5672/'))
     channel = connection.channel()
     
     # Declare the queue
@@ -181,10 +193,22 @@ def detect_plate(vehicle_img):
     return plate_detections
 
 def extract_plate_text(image):
-    _, img_encoded = cv2.imencode('.jpg', image)
-    image_data = img_encoded.tobytes()
-    response = stubOCR.Extract(plate_text_extraction_pb2.ImageRequest(image_data=image_data))
-    return response.text
+    try:
+        _, img_encoded = cv2.imencode('.jpg', image)
+        image_data = img_encoded.tobytes()
+        
+        # Add timeout for gRPC call
+        response = stubOCR.Extract(
+            plate_text_extraction_pb2.ImageRequest(image_data=image_data),
+            timeout=10.0  # 10 second timeout
+        )
+        return response.text
+    except grpc.RpcError as e:
+        print(f"gRPC error in OCR extraction: {e}")
+        return ""
+    except Exception as e:
+        print(f"Error in OCR extraction: {e}")
+        return ""
 
 def process_image(image, debug=False):
     vehicle_detections = detect_vehicles(image)
@@ -200,73 +224,60 @@ def process_image(image, debug=False):
 
         results_tracker = plate_tracker.update(plate_detections)
 
-        for result in results_tracker:
-            x1, y1, x2, y2, id = result
-            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-            cx, cy = x1 + (x2 - x1) // 2, y1 + (y2 - y1) // 2
-
+        # Process each detected plate directly
+        for i, plate_detection in enumerate(plate_detections):
             try:
-                px1, py1, px2, py2 = plate_detections[0][0], plate_detections[0][1], plate_detections[0][2], plate_detections[0][3]
-                rpx1, rpy1, rpx2, rpy2 = vehicle['x1'] + px1, vehicle['y1'] + py1, vehicle['x1'] + px2, vehicle['y1'] + py2
-                print(rpx1, rpy1, rpx2, rpy2)
-                x_condition = 600<(rpx1+rpx2)/2<1100
-                y_condition = 500<(rpy1+rpy2)/2<800
-                print(x_condition, y_condition)
-                if not x_condition or not y_condition:
-                    image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-                    print("masuk sini")
-                    metadata = {
-                        "vehicle_class": vehicle['class'],
-                        "plate_number": 'No Detection',
-                        "vehicle_position": {"x1": vehicle['x1'], "y1": vehicle['y1'], "x2": vehicle['x2'], "y2": vehicle['y2']},
-                        "plate_position": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
-                        "status": {"x": str(x_condition), "y": str(y_condition)},
-                        "position": [rpx1, rpy1, rpx2, rpy2]
-                    }
-                    try:
-                        request_influxdb_gateway(metadata, image)
-                    except Exception as e:
-                        print(e)
-                    print("belum masuk persyaratan")
-                    break
+                px1, py1, px2, py2, confidence = plate_detection[:5]
+                px1, py1, px2, py2 = int(px1), int(py1), int(px2), int(py2)
+                
+                # Calculate absolute position in original image
+                rpx1 = int(vehicle['x1'] + px1)
+                rpy1 = int(vehicle['y1'] + py1) 
+                rpx2 = int(vehicle['x1'] + px2)
+                rpy2 = int(vehicle['y1'] + py2)
+                
+                print(f"Plate detection {i}: confidence={confidence}, pos=({rpx1},{rpy1},{rpx2},{rpy2})")
+                
+                # Check if plate region is valid
+                if px2 > px1 and py2 > py1 and px1 >= 0 and py1 >= 0:
+                    # Extract plate image from vehicle region
+                    plate_img = vehicle_img[py1:py2, px1:px2]
+                    
+                    if plate_img.size > 0:
+                        # Extract text from plate
+                        plate_text = extract_plate_text(plate_img)
+                        print(f"Extracted plate text: '{plate_text}'")
+                        
+                        # Only add if we got valid text (minimum 3 characters)
+                        if plate_text and len(plate_text.strip()) >= 3:
+                            predictions.append({
+                                "vehicle_class": vehicle['class'],
+                                "plate_number": plate_text.strip(),
+                                "vehicle_position": {"x1": vehicle['x1'], "y1": vehicle['y1'], "x2": vehicle['x2'], "y2": vehicle['y2']},
+                                "plate_position": {"x1": rpx1, "y1": rpy1, "x2": rpx2, "y2": rpy2},
+                                "confidence": float(confidence),
+                                "plate_index": i
+                            })
+                            print(f"Added prediction: {plate_text.strip()}")
+                            
+                            # Optionally save vehicle image with detected plate
+                            try:
+                                vehicle_filename = f"vehicle_{plate_text.strip().replace(' ', '_')}.jpg"
+                                vehicle_filepath = os.path.join(SAVE_DIR, vehicle_filename)
+                                cv2.imwrite(vehicle_filepath, vehicle_img)
+                                print(f"Saved vehicle image: {vehicle_filepath}")
+                            except Exception as save_error:
+                                print(f"Failed to save vehicle image: {save_error}")
+                        else:
+                            print(f"Rejected plate text (too short or empty): '{plate_text}'")
+                    else:
+                        print(f"Empty plate image region for detection {i}")
+                else:
+                    print(f"Invalid plate coordinates for detection {i}: ({px1},{py1},{px2},{py2})")
+                    
             except Exception as e:
-                print("hasil deteksinya tidak ada", plate_detections, e)
-
-
-            print("break tidak bekerja")
-
-            if id not in processed_ids or debug == True:
-                processed_ids[id] = True
-                plate_img = vehicle_img[y1:y2, x1:x2]
-                plate_text = extract_plate_text(plate_img)
-
-                if plate_text:
-                    predictions.append({
-                        "vehicle_class": vehicle['class'],
-                        "plate_number": plate_text,
-                        "vehicle_position": {"x1": vehicle['x1'], "y1": vehicle['y1'], "x2": vehicle['x2'], "y2": vehicle['y2']},
-                        "plate_position": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
-                        "status": {"x": str(x_condition), "y": str(y_condition)},
-                        "position": [rpx1, rpy1, rpx2, rpy2]
-                    })
-
-                    # Identify closest vehicle and save image
-                    closest_vehicle_distance = float('inf')
-                    closest_vehicle_img = None
-
-                    for v in vehicle_detections:
-                        vx1, vy1, vx2, vy2 = v['x1'], v['y1'], v['x2'], v['y2']
-                        vcx, vcy = (vx1 + vx2) // 2, (vy1 + vy2) // 2
-                        distance = math.sqrt((cx - vcx) ** 2 + (cy - vcy) ** 2)
-                        if distance < closest_vehicle_distance:
-                            closest_vehicle_distance = distance
-                            closest_vehicle_img = image[int(vy1):int(vy2), int(vx1):int(vx2)]
-
-                    if closest_vehicle_img is not None:
-                        vehicle_filename = f"{plate_text}.jpg"
-                        vehicle_filepath = os.path.join(SAVE_DIR, vehicle_filename)
-                        cv2.imwrite(vehicle_filepath, closest_vehicle_img)
-                        print(f"Saved closest vehicle image: {vehicle_filepath}")
+                print(f"Error processing plate detection {i}: {e}")
+                continue
 
     return predictions
 
@@ -276,16 +287,66 @@ def predict():
         return jsonify({"error": "No image provided"}), 400
     
     image_file = request.files['image']
-    image = np.frombuffer(image_file.read(), np.uint8)
-    image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-    predictions = process_image(image)
+    if image_file.filename == '':
+        return jsonify({"error": "No image file selected"}), 400
+    
+    try:
+        # Read image data
+        image_data = image_file.read()
+        if len(image_data) == 0:
+            return jsonify({"error": "Empty image file"}), 400
+        
+        # Convert to numpy array and decode
+        image_array = np.frombuffer(image_data, np.uint8)
+        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+        
+        if image is None:
+            return jsonify({"error": "Invalid image format"}), 400
+        
+        print(f"Image shape: {image.shape}")
+        
+        # Process image for predictions
+        predictions = process_image(image, debug=True)
+        print(f"Predictions: {predictions}")
 
-    if len(predictions) != 0:
-        prediction_metadata = predictions[0]
-        request_influxdb_gateway(prediction_metadata, image)
+        if len(predictions) != 0:
+            prediction_metadata = predictions[0]
+            request_influxdb_gateway(prediction_metadata, image)
 
+        return jsonify(predictions)
+        
+    except Exception as e:
+        print(f"Error processing image: {str(e)}")
+        return jsonify({"error": f"Error processing image: {str(e)}"}), 500
 
-    return jsonify(predictions)
+@app.route('/predict-rtsp-stream', methods=['POST'])
+def predict_rtsp_stream():
+    from flask import Response
+    import time
+    data = request.get_json()
+    if not data or 'rtsp_url' not in data:
+        return jsonify({"error": "No RTSP URL provided"}), 400
+    rtsp_url = data['rtsp_url']
+    cap = cv2.VideoCapture(rtsp_url)
+    if not cap.isOpened():
+        return jsonify({"error": "Unable to open RTSP stream"}), 400
+    def generate():
+        while True:
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                break
+            predictions = process_image(frame, debug=True)
+            # Optionally, encode frame to JPEG and base64 for streaming
+            _, buffer = cv2.imencode('.jpg', frame)
+            frame_b64 = base64.b64encode(buffer).decode('utf-8')
+            yield f"data: {{\"predictions\": {json.dumps(predictions)}, \"frame\": \"{frame_b64}\"}}\n\n"
+            time.sleep(0.1)  # Faster frame rate for better detection (10 FPS)
+            
+            if len(predictions) != 0:
+                prediction_metadata = predictions[0]
+                request_influxdb_gateway(prediction_metadata, frame)
+        cap.release()
+    return Response(generate(), mimetype='text/event-stream')
 
 @app.route('/performance', methods=['GET'])
 def get_performance():
@@ -294,6 +355,7 @@ def get_performance():
     predictions = process_image(image, debug=True)
     elapsed_time = time.time() - now_time
     score = 1/elapsed_time
+    print(image.shape, elapsed_time, score)
 
     if len(predictions) != 0:
         prediction_metadata = predictions[0]
@@ -320,7 +382,8 @@ def test(id):
     predictions = process_image(image, debug=True)
     elapsed_time = time.time() - now_time
     score = 1/elapsed_time
-
+    
+    prediction_metadata = None
     if len(predictions) != 0:
         prediction_metadata = predictions[0]
         request_influxdb_gateway(prediction_metadata, image)
@@ -328,6 +391,7 @@ def test(id):
     return jsonify({
         'elapsed_time': elapsed_time,
         'score': score,
+        'predictions': predictions,
         'meteadata': prediction_metadata
     })
 
@@ -338,5 +402,96 @@ def health():
         'status': "200"
     })
 
+@app.route('/process-video', methods=['POST'])
+def process_video():
+    try:
+        # Check if video file is uploaded
+        if 'video' not in request.files:
+            return jsonify({"error": "No video file uploaded"}), 400
+        
+        video_file = request.files['video']
+        if video_file.filename == '':
+            return jsonify({"error": "No video file selected"}), 400
+        
+        # Save uploaded video temporarily
+        temp_video_path = f'/tmp/{video_file.filename}'
+        video_file.save(temp_video_path)
+        
+        # Open video capture
+        cap = cv2.VideoCapture(temp_video_path)
+        if not cap.isOpened():
+            # Clean up temp file
+            if os.path.exists(temp_video_path):
+                os.remove(temp_video_path)
+            return jsonify({"error": "Unable to open video file"}), 400
+        
+        all_detections = []
+        unique_plates = set()
+        frame_count = 0
+        processed_frames = 0
+        
+        print(f"Starting video processing: {temp_video_path}")
+        
+        # Get video properties
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        
+        # Calculate frame interval for 5 frames per second
+        if fps > 0:
+            frame_interval = max(1, int(fps / 5))  # Process 5 frames per second
+        else:
+            frame_interval = 6  # Default fallback
+        
+        print(f"Video FPS: {fps}, Total frames: {total_frames}, Processing every {frame_interval} frames")
+        
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+                
+            frame_count += 1
+            
+            # Process frames at 5 FPS rate
+            if frame_count % frame_interval == 0:
+                processed_frames += 1
+                print(f"Processing frame {frame_count}/{total_frames}...")
+                
+                # Process frame for plate detection
+                predictions = process_image(frame, debug=True)
+                
+                if predictions:
+                    for pred in predictions:
+                        plate_number = pred.get('plate_number', '')
+                        if plate_number:
+                            unique_plates.add(plate_number)
+                            pred['frame_number'] = frame_count
+                            pred['timestamp'] = frame_count / fps if fps > 0 else frame_count
+                            all_detections.append(pred)
+                            print(f"Frame {frame_count}: Detected plate {plate_number}")
+        
+        cap.release()
+        
+        # Clean up temporary file
+        if os.path.exists(temp_video_path):
+            os.remove(temp_video_path)
+        
+        result = {
+            "detections": all_detections,
+            "parking_updates": [],
+            "success": True,
+            "total_frames_processed": processed_frames,
+            "unique_plates": len(unique_plates)
+        }
+        
+        print(f"Video processing completed. Processed {processed_frames} frames, found {len(unique_plates)} unique plates")
+        return jsonify(result)
+        
+    except Exception as e:
+        # Clean up temporary file in case of error
+        if 'temp_video_path' in locals() and os.path.exists(temp_video_path):
+            os.remove(temp_video_path)
+        print(f"Error processing video: {str(e)}")
+        return jsonify({"error": f"Error processing video: {str(e)}"}), 500
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001)
+    app.run(host='0.0.0.0', port=5000)
