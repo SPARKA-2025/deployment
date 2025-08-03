@@ -22,11 +22,12 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # Environment variables
-
-.env.local
-.env.development.local
+#.env
+#.env.local
+#.env.development.local
 .env.test.local
 .env.production.local
+#.env.dev
 
 # Build directories
 /dist
@@ -52,19 +53,29 @@ yarn-error.log*
 /frontend/node_modules/
 /frontend/.env.local
 
-# Deployment specific
-/deployment/logs/
-/deployment/debug_frames/
-/deployment/saved_images/
-/deployment/temp_uploads/
-/deployment/uploads/
+# SPARKA specific directories
+debug_frames/
+saved_images/
+temp_uploads/
+uploads/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Storage and data
+storage/
+dump/
 
 # Docker
 docker-backup/
 *.tar
 *.tar.gz
+docker_logs.txt
 
-# Media files
+
+
+
 
 # Logs
 *.log
@@ -75,3 +86,25 @@ logs/
 *.temp
 *.swp
 *.swo
+
+# Python specific
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+.tox/
+venv/
+env/
+.venv/
+.env/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+*.old
