@@ -221,12 +221,11 @@ SPARKA Integration Service menyediakan deteksi plat nomor otomatis dan manajemen
 - `POST /config/auto-exit` - Update auto-exit timeout
 - `POST /config/auto-exit/test` - Test fungsi auto-exit
 
-### Fitur Auto-Exit Logic
 
-Sistem secara otomatis mendeteksi kendaraan keluar berdasarkan:
-- **Timeout Detection**: Jika kendaraan terdeteksi lagi setelah timeout (default: 5 menit), dianggap sebagai EXIT
+
+## Tambahan Sistem
 - **Redis Caching**: Menyimpan waktu deteksi terakhir untuk setiap plat nomor
-- **Smart Entry/Exit**: Otomatis menentukan apakah kendaraan masuk atau keluar
+- **Smart Entry/Exit**: Otomatis menentukan apakah kendaraan masuk atau keluar (30 detik dari deteksi terakhir)
 
 ### Contoh Penggunaan
 
@@ -314,11 +313,6 @@ NEXT_PUBLIC_SERVER_API_URL=http://localhost:5000
 ```
 
 #### Deployment (.env)
-Konfigurasi environment untuk Docker services tersedia di file `.env` di root folder deployment.
-
-## 🐛 Troubleshooting
-
-### Development Mode Issues
 
 #### Database Connection Issues
 ```bash
@@ -364,16 +358,3 @@ REDIS_PORT=6380
 BACKEND_PORT=8001
 FRONTEND_PORT=3001
 ```
-
-#### Common Development Issues
-- **Composer dependencies**: Jalankan `composer install` di folder backend
-- **NPM dependencies**: Jalankan `npm install` di folder frontend
-- **Database tidak terkoneksi**: Pastikan Docker services berjalan dengan `docker-compose -f docker-compose.dev.yml ps`
-- **Permission issues**: Pastikan folder storage/ dan bootstrap/cache/ writable di Laravel
-
-## 📝 Notes
-
-- **Development Mode** cocok untuk development harian dengan hot reload
-- **Full Docker Mode** cocok untuk testing, staging, dan production
-- Semua konfigurasi terpusat di folder `deployment/`
-- Database data persisten menggunakan Docker volumes
