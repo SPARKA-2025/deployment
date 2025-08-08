@@ -1,10 +1,15 @@
 # SPARKA Deployment Guide
 
+
+
+# GUNAKAN docker compose -f docker-compose-dev.yml up -d untuk menjalankan DEVELOPMENT MODE 
+
+
+
+
 Panduan deployment untuk sistem SPARKA dengan dua mode: **Full Docker** dan **Development Mode**.
 
 ## 📋 Prerequisites
-
-Sebelum memulai, pastikan sistem Anda memiliki:
 
 ### Untuk Full Docker Mode:
 - Docker Desktop atau Docker Engine
